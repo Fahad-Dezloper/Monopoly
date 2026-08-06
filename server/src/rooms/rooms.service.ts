@@ -294,7 +294,6 @@ export class RoomsService implements OnModuleInit, OnModuleDestroy {
       const setups: PlayerSetup[] = room.members.map((m) => ({
         name: m.username,
         color: m.color,
-        isAI: false,
       }));
 
       const game = startGame(setups, { shuffle: true });

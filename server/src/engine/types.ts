@@ -63,13 +63,11 @@ export interface Player {
   communityChestJailCard: boolean;
   chanceJailCard: boolean;
   bidding: boolean;
-  human: boolean;
 }
 
 export interface PlayerSetup {
   name: string;
   color: PlayerColor;
-  isAI: boolean;
 }
 
 export type ControlTab = "buy" | "manage" | "trade";

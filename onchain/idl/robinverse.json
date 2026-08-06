@@ -1,0 +1,2386 @@
+{
+  "address": "AyHcc7ySuwU5qfinS94CPaZKpiWCXWfFdxLtww8bupAs",
+  "metadata": {
+    "name": "robinverse",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Onchain Monopoly engine for RobinVerse, running on MagicBlock ephemeral rollups"
+  },
+  "instructions": [
+    {
+      "name": "acknowledge",
+      "docs": [
+        "Acknowledges a blocking modal: go to jail, the compulsory jail fine, or",
+        "a drawn card. Only the player it belongs to may clear it."
+      ],
+      "discriminator": [
+        209,
+        182,
+        197,
+        45,
+        97,
+        93,
+        210,
+        58
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "build",
+      "discriminator": [
+        185,
+        78,
+        176,
+        79,
+        189,
+        139,
+        56,
+        25
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "square",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "buy_property",
+      "discriminator": [
+        128,
+        136,
+        62,
+        184,
+        252,
+        187,
+        128,
+        130
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "callback_roll",
+      "discriminator": [
+        104,
+        43,
+        141,
+        38,
+        167,
+        29,
+        52,
+        209
+      ],
+      "accounts": [
+        {
+          "name": "vrf_program_identity",
+          "docs": [
+            "Scoped VRF identity PDA, bound to this program. Its presence as a signer proves",
+            "the callback was issued by the VRF program for this program."
+          ],
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "randomness",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "nonce",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "callback_start",
+      "discriminator": [
+        29,
+        124,
+        69,
+        237,
+        5,
+        217,
+        248,
+        109
+      ],
+      "accounts": [
+        {
+          "name": "vrf_program_identity",
+          "docs": [
+            "Scoped VRF identity PDA, bound to this program. Its presence as a signer proves",
+            "the callback was issued by the VRF program for this program."
+          ],
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "randomness",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "nonce",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "checkpoint",
+      "docs": [
+        "Checkpoints ER state to the base layer without giving the account back.",
+        "Used sparingly — each delegated account only gets a small number of",
+        "sponsored commits before the quota has to be refreshed."
+      ],
+      "discriminator": [
+        213,
+        200,
+        19,
+        204,
+        240,
+        143,
+        184,
+        252
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "magic_context",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_game",
+      "discriminator": [
+        124,
+        69,
+        75,
+        66,
+        184,
+        220,
+        72,
+        206
+      ],
+      "accounts": [
+        {
+          "name": "host",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "code"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "code",
+          "type": {
+            "array": [
+              "u8",
+              6
+            ]
+          }
+        },
+        {
+          "name": "name",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        },
+        {
+          "name": "color",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "decline_property",
+      "docs": [
+        "Declines the purchase, which sends the square to auction at end of turn."
+      ],
+      "discriminator": [
+        155,
+        79,
+        198,
+        116,
+        170,
+        10,
+        2,
+        84
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "delegate_game",
+      "docs": [
+        "Base layer. Hands the game account to the delegation program so every",
+        "subsequent turn runs on the ephemeral rollup."
+      ],
+      "discriminator": [
+        116,
+        183,
+        70,
+        107,
+        112,
+        223,
+        122,
+        210
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "buffer_game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                148,
+                36,
+                126,
+                55,
+                33,
+                251,
+                20,
+                166,
+                118,
+                40,
+                166,
+                56,
+                135,
+                105,
+                90,
+                186,
+                173,
+                96,
+                144,
+                3,
+                93,
+                140,
+                155,
+                0,
+                50,
+                168,
+                60,
+                146,
+                98,
+                125,
+                148,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "code"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_program",
+          "address": "AyHcc7ySuwU5qfinS94CPaZKpiWCXWfFdxLtww8bupAs"
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "code",
+          "type": {
+            "array": [
+              "u8",
+              6
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "end_turn",
+      "discriminator": [
+        34,
+        247,
+        56,
+        118,
+        182,
+        41,
+        186,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "force_skip_turn",
+      "docs": [
+        "Anyone may call this once the clock has run out, which is what stops a",
+        "disconnected player from freezing the table. The program checks the",
+        "deadline itself rather than trusting a caller-supplied timestamp."
+      ],
+      "discriminator": [
+        255,
+        238,
+        137,
+        51,
+        172,
+        43,
+        211,
+        129
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "join_game",
+      "discriminator": [
+        107,
+        112,
+        18,
+        38,
+        56,
+        173,
+        60,
+        128
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        },
+        {
+          "name": "color",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "mortgage",
+      "discriminator": [
+        21,
+        242,
+        139,
+        90,
+        60,
+        6,
+        46,
+        40
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "square",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "place_bid",
+      "discriminator": [
+        238,
+        77,
+        148,
+        91,
+        200,
+        151,
+        92,
+        146
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "process_undelegation",
+      "discriminator": [
+        196,
+        28,
+        41,
+        206,
+        48,
+        37,
+        51,
+        167
+      ],
+      "accounts": [
+        {
+          "name": "base_account",
+          "writable": true
+        },
+        {
+          "name": "buffer",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  101,
+                  45,
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "base_account"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                181,
+                183,
+                0,
+                225,
+                242,
+                87,
+                58,
+                192,
+                204,
+                6,
+                34,
+                1,
+                52,
+                74,
+                207,
+                151,
+                184,
+                53,
+                6,
+                235,
+                140,
+                229,
+                25,
+                152,
+                204,
+                98,
+                126,
+                24,
+                147,
+                128,
+                167,
+                62
+              ]
+            }
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "account_seeds",
+          "type": {
+            "vec": "bytes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "propose_trade",
+      "discriminator": [
+        90,
+        218,
+        7,
+        166,
+        111,
+        48,
+        29,
+        15
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "recipient",
+          "type": "u8"
+        },
+        {
+          "name": "initiator_cash",
+          "type": "u32"
+        },
+        {
+          "name": "recipient_cash",
+          "type": "u32"
+        },
+        {
+          "name": "squares",
+          "type": {
+            "array": [
+              "u8",
+              40
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "resign",
+      "docs": [
+        "Voluntary exit, and the path out of unpayable debt."
+      ],
+      "discriminator": [
+        177,
+        177,
+        153,
+        96,
+        88,
+        149,
+        206,
+        225
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "respond_to_trade",
+      "discriminator": [
+        193,
+        103,
+        55,
+        224,
+        136,
+        204,
+        52,
+        188
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "accept",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "roll_dice",
+      "docs": [
+        "Requests dice. The result arrives in `callback_roll`, not here."
+      ],
+      "discriminator": [
+        27,
+        140,
+        230,
+        215,
+        37,
+        178,
+        226,
+        114
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        },
+        {
+          "name": "oracle_queue",
+          "writable": true
+        },
+        {
+          "name": "program_identity",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  105,
+                  100,
+                  101,
+                  110,
+                  116,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vrf_program",
+          "address": "Vrf1RNUjXmQGjmQrQLvJHs9SNkvDJEsRVFPkfSQUwGz"
+        },
+        {
+          "name": "slot_hashes",
+          "address": "SysvarS1otHashes111111111111111111111111111"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "client_seed",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "sell_building",
+      "discriminator": [
+        81,
+        56,
+        161,
+        40,
+        97,
+        140,
+        191,
+        123
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "square",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "settle_game",
+      "docs": [
+        "Final settlement. Commits the finished game and returns the account to",
+        "the base layer."
+      ],
+      "discriminator": [
+        96,
+        54,
+        24,
+        189,
+        239,
+        198,
+        86,
+        29
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "magic_context",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "start_game",
+      "docs": [
+        "Requests the randomness that shuffles both decks and rolls seat order.",
+        "The game is not playable until `callback_start` lands."
+      ],
+      "discriminator": [
+        249,
+        47,
+        252,
+        172,
+        184,
+        162,
+        245,
+        14
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        },
+        {
+          "name": "oracle_queue",
+          "writable": true
+        },
+        {
+          "name": "program_identity",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  105,
+                  100,
+                  101,
+                  110,
+                  116,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vrf_program",
+          "address": "Vrf1RNUjXmQGjmQrQLvJHs9SNkvDJEsRVFPkfSQUwGz"
+        },
+        {
+          "name": "slot_hashes",
+          "address": "SysvarS1otHashes111111111111111111111111111"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "client_seed",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "unmortgage",
+      "discriminator": [
+        194,
+        44,
+        133,
+        145,
+        91,
+        1,
+        234,
+        78
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "square",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_bid",
+      "discriminator": [
+        110,
+        53,
+        157,
+        195,
+        147,
+        100,
+        110,
+        73
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "game",
+          "writable": true
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Game",
+      "discriminator": [
+        27,
+        90,
+        166,
+        125,
+        74,
+        100,
+        121,
+        18
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "BidPlaced",
+      "discriminator": [
+        135,
+        53,
+        176,
+        83,
+        193,
+        69,
+        108,
+        61
+      ]
+    },
+    {
+      "name": "BidWithdrawn",
+      "discriminator": [
+        145,
+        195,
+        97,
+        230,
+        166,
+        54,
+        74,
+        206
+      ]
+    },
+    {
+      "name": "BuildingSold",
+      "discriminator": [
+        84,
+        142,
+        164,
+        79,
+        209,
+        108,
+        129,
+        231
+      ]
+    },
+    {
+      "name": "Built",
+      "discriminator": [
+        82,
+        4,
+        76,
+        117,
+        130,
+        142,
+        27,
+        55
+      ]
+    },
+    {
+      "name": "DiceRequested",
+      "discriminator": [
+        251,
+        189,
+        143,
+        186,
+        115,
+        7,
+        18,
+        131
+      ]
+    },
+    {
+      "name": "DiceRolled",
+      "discriminator": [
+        7,
+        111,
+        244,
+        16,
+        252,
+        210,
+        24,
+        250
+      ]
+    },
+    {
+      "name": "GameCreated",
+      "discriminator": [
+        218,
+        25,
+        150,
+        94,
+        177,
+        112,
+        96,
+        2
+      ]
+    },
+    {
+      "name": "GameStarted",
+      "discriminator": [
+        222,
+        247,
+        78,
+        255,
+        61,
+        184,
+        156,
+        41
+      ]
+    },
+    {
+      "name": "Mortgaged",
+      "discriminator": [
+        206,
+        139,
+        59,
+        152,
+        77,
+        223,
+        118,
+        243
+      ]
+    },
+    {
+      "name": "PendingResolved",
+      "discriminator": [
+        11,
+        160,
+        50,
+        191,
+        26,
+        122,
+        101,
+        26
+      ]
+    },
+    {
+      "name": "PlayerEliminated",
+      "discriminator": [
+        113,
+        7,
+        112,
+        31,
+        140,
+        23,
+        12,
+        120
+      ]
+    },
+    {
+      "name": "PlayerJoined",
+      "discriminator": [
+        39,
+        144,
+        49,
+        106,
+        108,
+        210,
+        183,
+        38
+      ]
+    },
+    {
+      "name": "PropertyBought",
+      "discriminator": [
+        143,
+        200,
+        72,
+        46,
+        114,
+        31,
+        79,
+        100
+      ]
+    },
+    {
+      "name": "TradeProposed",
+      "discriminator": [
+        119,
+        113,
+        214,
+        38,
+        23,
+        142,
+        28,
+        147
+      ]
+    },
+    {
+      "name": "TradeResolved",
+      "discriminator": [
+        115,
+        129,
+        178,
+        87,
+        129,
+        68,
+        169,
+        240
+      ]
+    },
+    {
+      "name": "TurnEnded",
+      "discriminator": [
+        107,
+        114,
+        255,
+        211,
+        145,
+        17,
+        177,
+        159
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "GameFull",
+      "msg": "The game is full"
+    },
+    {
+      "code": 6001,
+      "name": "AlreadyStarted",
+      "msg": "The game has already started"
+    },
+    {
+      "code": 6002,
+      "name": "NotStarted",
+      "msg": "The game has not started yet"
+    },
+    {
+      "code": 6003,
+      "name": "GameOver",
+      "msg": "The game is over"
+    },
+    {
+      "code": 6004,
+      "name": "NotEnoughPlayers",
+      "msg": "At least two players are required"
+    },
+    {
+      "code": 6005,
+      "name": "AlreadyJoined",
+      "msg": "That wallet already holds a seat"
+    },
+    {
+      "code": 6006,
+      "name": "NotAPlayer",
+      "msg": "That wallet does not hold a seat in this game"
+    },
+    {
+      "code": 6007,
+      "name": "NotYourTurn",
+      "msg": "It is not your turn"
+    },
+    {
+      "code": 6008,
+      "name": "NotHost",
+      "msg": "Only the host may do that"
+    },
+    {
+      "code": 6009,
+      "name": "PendingAction",
+      "msg": "A modal action is waiting to be acknowledged"
+    },
+    {
+      "code": 6010,
+      "name": "NoPendingAction",
+      "msg": "No pending action to acknowledge"
+    },
+    {
+      "code": 6011,
+      "name": "DiceNotRolled",
+      "msg": "Dice have not been rolled yet"
+    },
+    {
+      "code": 6012,
+      "name": "DiceAlreadyRolled",
+      "msg": "Dice have already been rolled this turn"
+    },
+    {
+      "code": 6013,
+      "name": "RandomnessPending",
+      "msg": "Randomness is already in flight"
+    },
+    {
+      "code": 6014,
+      "name": "NoRandomnessPending",
+      "msg": "No randomness request is in flight"
+    },
+    {
+      "code": 6015,
+      "name": "RandomnessMismatch",
+      "msg": "This randomness callback does not match the pending request"
+    },
+    {
+      "code": 6016,
+      "name": "NotBuyable",
+      "msg": "That square cannot be bought"
+    },
+    {
+      "code": 6017,
+      "name": "AlreadyOwned",
+      "msg": "That square already has an owner"
+    },
+    {
+      "code": 6018,
+      "name": "NotOwner",
+      "msg": "You do not own that square"
+    },
+    {
+      "code": 6019,
+      "name": "InsufficientFunds",
+      "msg": "Not enough cash"
+    },
+    {
+      "code": 6020,
+      "name": "OutstandingDebt",
+      "msg": "You must settle your debt before continuing"
+    },
+    {
+      "code": 6021,
+      "name": "UnevenBuild",
+      "msg": "Houses must be built evenly across the colour group"
+    },
+    {
+      "code": 6022,
+      "name": "NoMonopoly",
+      "msg": "You must own the whole colour group to build"
+    },
+    {
+      "code": 6023,
+      "name": "GroupMortgaged",
+      "msg": "Mortgaged property blocks building on this group"
+    },
+    {
+      "code": 6024,
+      "name": "NoHousesLeft",
+      "msg": "The bank has no houses left"
+    },
+    {
+      "code": 6025,
+      "name": "NoHotelsLeft",
+      "msg": "The bank has no hotels left"
+    },
+    {
+      "code": 6026,
+      "name": "InvalidBuild",
+      "msg": "That build is not allowed here"
+    },
+    {
+      "code": 6027,
+      "name": "AlreadyMortgaged",
+      "msg": "That square is already mortgaged"
+    },
+    {
+      "code": 6028,
+      "name": "NotMortgaged",
+      "msg": "That square is not mortgaged"
+    },
+    {
+      "code": 6029,
+      "name": "HasBuildings",
+      "msg": "Sell the buildings on this group first"
+    },
+    {
+      "code": 6030,
+      "name": "NoAuction",
+      "msg": "No auction is running"
+    },
+    {
+      "code": 6031,
+      "name": "NotYourBid",
+      "msg": "It is not your turn to bid"
+    },
+    {
+      "code": 6032,
+      "name": "BidTooLow",
+      "msg": "A bid must beat the current highest bid"
+    },
+    {
+      "code": 6033,
+      "name": "NoTrade",
+      "msg": "No trade is open"
+    },
+    {
+      "code": 6034,
+      "name": "TradeAlreadyOpen",
+      "msg": "A trade is already open"
+    },
+    {
+      "code": 6035,
+      "name": "NotInTrade",
+      "msg": "You are not part of this trade"
+    },
+    {
+      "code": 6036,
+      "name": "InvalidTrade",
+      "msg": "That trade is not valid"
+    },
+    {
+      "code": 6037,
+      "name": "TurnNotExpired",
+      "msg": "The turn clock has not expired yet"
+    },
+    {
+      "code": 6038,
+      "name": "BadSquare",
+      "msg": "That square index is out of range"
+    },
+    {
+      "code": 6039,
+      "name": "BadSeat",
+      "msg": "That seat is out of range"
+    },
+    {
+      "code": 6040,
+      "name": "NameTooLong",
+      "msg": "Player name is too long"
+    }
+  ],
+  "types": [
+    {
+      "name": "AuctionState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "square",
+            "type": "u8"
+          },
+          {
+            "name": "highest_bid",
+            "type": "u32"
+          },
+          {
+            "name": "highest_bidder",
+            "type": "u8"
+          },
+          {
+            "name": "current_bidder",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BidPlaced",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "square",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BidWithdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BuildingSold",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "square",
+            "type": "u8"
+          },
+          {
+            "name": "refund",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Built",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "square",
+            "type": "u8"
+          },
+          {
+            "name": "hotel",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DiceRequested",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DiceRolled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "die1",
+            "type": "u8"
+          },
+          {
+            "name": "die2",
+            "type": "u8"
+          },
+          {
+            "name": "doubles",
+            "type": "bool"
+          },
+          {
+            "name": "square",
+            "type": "u8"
+          },
+          {
+            "name": "rent_paid",
+            "type": "u32"
+          },
+          {
+            "name": "rent_to",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Game",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "code",
+            "docs": [
+              "Room code, matching the six-character lobby codes already in the product."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                6
+              ]
+            }
+          },
+          {
+            "name": "host",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "phase",
+            "type": {
+              "defined": {
+                "name": "Phase"
+              }
+            }
+          },
+          {
+            "name": "player_count",
+            "type": "u8"
+          },
+          {
+            "name": "turn",
+            "type": "u8"
+          },
+          {
+            "name": "double_count",
+            "type": "u8"
+          },
+          {
+            "name": "die1",
+            "type": "u8"
+          },
+          {
+            "name": "die2",
+            "type": "u8"
+          },
+          {
+            "name": "dice_rolled",
+            "type": "bool"
+          },
+          {
+            "name": "winner",
+            "docs": [
+              "Winning seat once decided, BANK while the game is live or a draw."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "houses_available",
+            "type": "u8"
+          },
+          {
+            "name": "hotels_available",
+            "type": "u8"
+          },
+          {
+            "name": "turn_deadline",
+            "type": "i64"
+          },
+          {
+            "name": "pending",
+            "type": {
+              "defined": {
+                "name": "Pending"
+              }
+            }
+          },
+          {
+            "name": "players",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "PlayerState"
+                  }
+                },
+                9
+              ]
+            }
+          },
+          {
+            "name": "squares",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "SquareState"
+                  }
+                },
+                40
+              ]
+            }
+          },
+          {
+            "name": "fortune_deck",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "fortune_index",
+            "type": "u8"
+          },
+          {
+            "name": "treasury_deck",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "treasury_index",
+            "type": "u8"
+          },
+          {
+            "name": "auction_queue",
+            "docs": [
+              "Squares landed on but not bought, drained into auctions at end of turn."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                40
+              ]
+            }
+          },
+          {
+            "name": "auction_queue_len",
+            "type": "u8"
+          },
+          {
+            "name": "auction",
+            "type": {
+              "defined": {
+                "name": "AuctionState"
+              }
+            }
+          },
+          {
+            "name": "trade",
+            "type": {
+              "defined": {
+                "name": "TradeState"
+              }
+            }
+          },
+          {
+            "name": "vrf_nonce",
+            "docs": [
+              "Correlates one VRF request with one permitted callback."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "vrf_pending",
+            "docs": [
+              "True between a randomness request and its callback."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "vrf_purpose",
+            "docs": [
+              "What the in-flight randomness is for."
+            ],
+            "type": {
+              "defined": {
+                "name": "VrfPurpose"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "host",
+            "type": "pubkey"
+          },
+          {
+            "name": "code",
+            "type": {
+              "array": [
+                "u8",
+                6
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameStarted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "first_turn",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Mortgaged",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "square",
+            "type": "u8"
+          },
+          {
+            "name": "value",
+            "type": "u32"
+          },
+          {
+            "name": "lifted",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Pending",
+      "docs": [
+        "Modal-style interruptions that block turn progress until acknowledged.",
+        "Replaces the off-chain `popup` object; the client renders from this."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "GoToJail"
+          },
+          {
+            "name": "JailFine"
+          },
+          {
+            "name": "Card",
+            "fields": [
+              {
+                "name": "fortune",
+                "type": "bool"
+              },
+              {
+                "name": "index",
+                "type": "u8"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "PendingResolved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "square",
+            "type": "u8"
+          },
+          {
+            "name": "rent_paid",
+            "type": "u32"
+          },
+          {
+            "name": "tax_paid",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Phase",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Lobby"
+          },
+          {
+            "name": "TurnStart"
+          },
+          {
+            "name": "AwaitingDice"
+          },
+          {
+            "name": "Rolled"
+          },
+          {
+            "name": "Card"
+          },
+          {
+            "name": "Auction"
+          },
+          {
+            "name": "GameOver"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlayerEliminated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "timed_out",
+            "type": "bool"
+          },
+          {
+            "name": "winner",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlayerJoined",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlayerState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "color",
+            "type": "u8"
+          },
+          {
+            "name": "cash",
+            "docs": [
+              "Signed so a player can sit in debt before raising funds or going bust,",
+              "exactly as the original engine allowed money to go negative."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "position",
+            "type": "u8"
+          },
+          {
+            "name": "creditor",
+            "docs": [
+              "Who they owe when cash is negative; BANK when it is the bank."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "in_jail",
+            "type": "bool"
+          },
+          {
+            "name": "jail_rolls",
+            "type": "u8"
+          },
+          {
+            "name": "fortune_jail_card",
+            "type": "bool"
+          },
+          {
+            "name": "treasury_jail_card",
+            "type": "bool"
+          },
+          {
+            "name": "bidding",
+            "docs": [
+              "Still live in the current auction."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "active",
+            "docs": [
+              "Seat is occupied and not yet bankrupt."
+            ],
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PropertyBought",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "square",
+            "type": "u8"
+          },
+          {
+            "name": "price",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SquareState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "u8"
+          },
+          {
+            "name": "houses",
+            "type": "u8"
+          },
+          {
+            "name": "hotel",
+            "type": "bool"
+          },
+          {
+            "name": "mortgaged",
+            "type": "bool"
+          },
+          {
+            "name": "land_count",
+            "docs": [
+              "Kept for the client's \"hot tiles\" heat display."
+            ],
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TradeProposed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "initiator",
+            "type": "u8"
+          },
+          {
+            "name": "recipient",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TradeResolved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "accepted",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TradeState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "initiator",
+            "type": "u8"
+          },
+          {
+            "name": "recipient",
+            "type": "u8"
+          },
+          {
+            "name": "initiator_cash",
+            "type": "u32"
+          },
+          {
+            "name": "recipient_cash",
+            "type": "u32"
+          },
+          {
+            "name": "squares",
+            "docs": [
+              "1 = offered by initiator, 2 = requested from recipient, 0 = untouched."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                40
+              ]
+            }
+          },
+          {
+            "name": "awaiting_response",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TurnEnded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "previous",
+            "type": "u8"
+          },
+          {
+            "name": "next",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VrfPurpose",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Setup"
+          },
+          {
+            "name": "Dice"
+          }
+        ]
+      }
+    }
+  ]
+}

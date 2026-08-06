@@ -227,15 +227,13 @@ export function startGame(setups: PlayerSetup[], options?: { shuffle?: boolean }
     communityChestJailCard: false,
     chanceJailCard: false,
     bidding: true,
-    human: true,
   }));
 
   for (let i = 1; i <= count; i++) {
     const setup = setups[order[i - 1] - 1];
     const p = players[i];
     p.color = setup.color;
-    p.human = !setup.isAI;
-    p.name = setup.isAI ? `AI Test ${i}` : setup.name || `Player ${i}`;
+    p.name = setup.name || `Player ${i}`;
   }
 
   state.players = players;
@@ -1019,8 +1017,6 @@ export type GameAction =
   | { type: "CANCEL_TRADE" }
   | { type: "TOGGLE_STATS" }
   | { type: "RESIGN" }
-  | { type: "AI_BUY_IF"; shouldBuy: boolean }
-  | { type: "AI_BID"; amount: number }
   | { type: "SKIP_TURN" };
 
 export function gameReducer(prev: GameState, action: GameAction): GameState {
@@ -1035,14 +1031,6 @@ export function gameReducer(prev: GameState, action: GameAction): GameState {
     case "NEXT": {
       if (state.phase === "auction" || state.phase === "card") break;
       if (state.popup?.open) break;
-
-      if (p && !p.human && p.money < 0) {
-        // AI debt handled externally; if still negative resign
-        if (p.money < 0) {
-          resignPlayer(state);
-          break;
-        }
-      }
 
       if (state.diceRolled && state.doubleCount === 0) {
         endTurnOrAuction(state);
@@ -1271,11 +1259,6 @@ export function gameReducer(prev: GameState, action: GameAction): GameState {
     case "PROPOSE_TRADE": {
       if (!state.trade) break;
       state.trade.awaitingResponse = true;
-      const recip = state.players[state.trade.recipient];
-      if (!recip.human) {
-        // AI accepts simple positive trades
-        applyTrade(state, state.trade);
-      }
       break;
     }
 
@@ -1298,34 +1281,6 @@ export function gameReducer(prev: GameState, action: GameAction): GameState {
       resignPlayer(state);
       break;
 
-    case "AI_BUY_IF": {
-      if (action.shouldBuy) {
-        const sq = state.squares[p.position];
-        if (sq.price > 0 && sq.owner === 0 && p.money >= sq.price) {
-          pay(state, state.turn, sq.price, 0);
-          sq.owner = state.turn;
-          addAlert(state, `${p.name} bought ${sq.name} for ${sq.pricetext}.`);
-          state.auctionQueue = state.auctionQueue.filter((i) => i !== p.position);
-        }
-      }
-      break;
-    }
-
-    case "AI_BID": {
-      if (!state.auction) break;
-      if (action.amount < 0) {
-        state.players[state.auction.currentBidder].bidding = false;
-        advanceAuctionBidder(state);
-      } else if (action.amount === 0) {
-        advanceAuctionBidder(state);
-      } else {
-        const a = state.auction;
-        a.highestBid = action.amount;
-        a.highestBidder = a.currentBidder;
-        advanceAuctionBidder(state);
-      }
-      break;
-    }
   }
 
   return state;
