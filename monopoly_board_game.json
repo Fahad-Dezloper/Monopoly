@@ -1,0 +1,723 @@
+{
+  "meta": {
+    "title": "Meridia: A Property Trading Game",
+    "description": "AI-ready property-trading board game dataset, mechanically equivalent to classic property-trading games, themed around real cities grouped by country (India, China, Brazil, Russia, Germany, Australia, UK, USA).",
+    "tile_count": 40,
+    "property_count": 22,
+    "country_group_count": 8,
+    "transport_hub_count": 4,
+    "utility_count": 2,
+    "starting_cash_per_player": 1500,
+    "go_salary": 200,
+    "jail_fine": 50,
+    "currency_symbol": "$"
+  },
+  "board": [
+    {
+      "id": 0,
+      "name": "GO",
+      "type": "go"
+    },
+    {
+      "id": 1,
+      "name": "Mumbai",
+      "type": "property",
+      "group": "india",
+      "country": "India",
+      "price": 60,
+      "mortgage_value": 30,
+      "house_cost": 50,
+      "hotel_cost": 50,
+      "rent": {
+        "base": 2,
+        "monopoly": 4,
+        "house_1": 10,
+        "house_2": 30,
+        "house_3": 90,
+        "house_4": 160,
+        "hotel": 250
+      }
+    },
+    {
+      "id": 2,
+      "name": "Treasury",
+      "type": "treasury"
+    },
+    {
+      "id": 3,
+      "name": "Delhi",
+      "type": "property",
+      "group": "india",
+      "country": "India",
+      "price": 60,
+      "mortgage_value": 30,
+      "house_cost": 50,
+      "hotel_cost": 50,
+      "rent": {
+        "base": 4,
+        "monopoly": 8,
+        "house_1": 20,
+        "house_2": 60,
+        "house_3": 180,
+        "house_4": 320,
+        "hotel": 450
+      }
+    },
+    {
+      "id": 4,
+      "name": "Income Tax",
+      "type": "tax",
+      "amount": 200
+    },
+    {
+      "id": 5,
+      "name": "Central Station",
+      "type": "transport",
+      "group": "transport",
+      "price": 200,
+      "mortgage_value": 100,
+      "rent": {
+        "owned_1": 25,
+        "owned_2": 50,
+        "owned_3": 100,
+        "owned_4": 200
+      }
+    },
+    {
+      "id": 6,
+      "name": "Shanghai",
+      "type": "property",
+      "group": "china",
+      "country": "China",
+      "price": 100,
+      "mortgage_value": 50,
+      "house_cost": 50,
+      "hotel_cost": 50,
+      "rent": {
+        "base": 6,
+        "monopoly": 12,
+        "house_1": 30,
+        "house_2": 90,
+        "house_3": 270,
+        "house_4": 400,
+        "hotel": 550
+      }
+    },
+    {
+      "id": 7,
+      "name": "Fortune",
+      "type": "fortune"
+    },
+    {
+      "id": 8,
+      "name": "Beijing",
+      "type": "property",
+      "group": "china",
+      "country": "China",
+      "price": 100,
+      "mortgage_value": 50,
+      "house_cost": 50,
+      "hotel_cost": 50,
+      "rent": {
+        "base": 6,
+        "monopoly": 12,
+        "house_1": 30,
+        "house_2": 90,
+        "house_3": 270,
+        "house_4": 400,
+        "hotel": 550
+      }
+    },
+    {
+      "id": 9,
+      "name": "Guangzhou",
+      "type": "property",
+      "group": "china",
+      "country": "China",
+      "price": 120,
+      "mortgage_value": 60,
+      "house_cost": 50,
+      "hotel_cost": 50,
+      "rent": {
+        "base": 8,
+        "monopoly": 16,
+        "house_1": 40,
+        "house_2": 100,
+        "house_3": 300,
+        "house_4": 450,
+        "hotel": 600
+      }
+    },
+    {
+      "id": 10,
+      "name": "Jail / Just Visiting",
+      "type": "jail"
+    },
+    {
+      "id": 11,
+      "name": "Rio de Janeiro",
+      "type": "property",
+      "group": "brazil",
+      "country": "Brazil",
+      "price": 140,
+      "mortgage_value": 70,
+      "house_cost": 100,
+      "hotel_cost": 100,
+      "rent": {
+        "base": 10,
+        "monopoly": 20,
+        "house_1": 50,
+        "house_2": 150,
+        "house_3": 450,
+        "house_4": 625,
+        "hotel": 750
+      }
+    },
+    {
+      "id": 12,
+      "name": "Solar Grid",
+      "type": "utility",
+      "group": "utility",
+      "price": 150,
+      "mortgage_value": 75,
+      "rent": {
+        "owned_1_multiplier": 4,
+        "owned_2_multiplier": 10,
+        "note": "Rent = dice roll x multiplier"
+      }
+    },
+    {
+      "id": 13,
+      "name": "Sao Paulo",
+      "type": "property",
+      "group": "brazil",
+      "country": "Brazil",
+      "price": 140,
+      "mortgage_value": 70,
+      "house_cost": 100,
+      "hotel_cost": 100,
+      "rent": {
+        "base": 10,
+        "monopoly": 20,
+        "house_1": 50,
+        "house_2": 150,
+        "house_3": 450,
+        "house_4": 625,
+        "hotel": 750
+      }
+    },
+    {
+      "id": 14,
+      "name": "Brasilia",
+      "type": "property",
+      "group": "brazil",
+      "country": "Brazil",
+      "price": 160,
+      "mortgage_value": 80,
+      "house_cost": 100,
+      "hotel_cost": 100,
+      "rent": {
+        "base": 12,
+        "monopoly": 24,
+        "house_1": 60,
+        "house_2": 180,
+        "house_3": 500,
+        "house_4": 700,
+        "hotel": 900
+      }
+    },
+    {
+      "id": 15,
+      "name": "Harbor Terminal",
+      "type": "transport",
+      "group": "transport",
+      "price": 200,
+      "mortgage_value": 100,
+      "rent": {
+        "owned_1": 25,
+        "owned_2": 50,
+        "owned_3": 100,
+        "owned_4": 200
+      }
+    },
+    {
+      "id": 16,
+      "name": "Moscow",
+      "type": "property",
+      "group": "russia",
+      "country": "Russia",
+      "price": 180,
+      "mortgage_value": 90,
+      "house_cost": 100,
+      "hotel_cost": 100,
+      "rent": {
+        "base": 14,
+        "monopoly": 28,
+        "house_1": 70,
+        "house_2": 200,
+        "house_3": 550,
+        "house_4": 750,
+        "hotel": 950
+      }
+    },
+    {
+      "id": 17,
+      "name": "Treasury",
+      "type": "treasury"
+    },
+    {
+      "id": 18,
+      "name": "St. Petersburg",
+      "type": "property",
+      "group": "russia",
+      "country": "Russia",
+      "price": 180,
+      "mortgage_value": 90,
+      "house_cost": 100,
+      "hotel_cost": 100,
+      "rent": {
+        "base": 14,
+        "monopoly": 28,
+        "house_1": 70,
+        "house_2": 200,
+        "house_3": 550,
+        "house_4": 750,
+        "hotel": 950
+      }
+    },
+    {
+      "id": 19,
+      "name": "Sochi",
+      "type": "property",
+      "group": "russia",
+      "country": "Russia",
+      "price": 200,
+      "mortgage_value": 100,
+      "house_cost": 100,
+      "hotel_cost": 100,
+      "rent": {
+        "base": 16,
+        "monopoly": 32,
+        "house_1": 80,
+        "house_2": 220,
+        "house_3": 600,
+        "house_4": 800,
+        "hotel": 1000
+      }
+    },
+    {
+      "id": 20,
+      "name": "Free Parking",
+      "type": "free_parking"
+    },
+    {
+      "id": 21,
+      "name": "Berlin",
+      "type": "property",
+      "group": "germany",
+      "country": "Germany",
+      "price": 220,
+      "mortgage_value": 110,
+      "house_cost": 150,
+      "hotel_cost": 150,
+      "rent": {
+        "base": 18,
+        "monopoly": 36,
+        "house_1": 90,
+        "house_2": 250,
+        "house_3": 700,
+        "house_4": 875,
+        "hotel": 1050
+      }
+    },
+    {
+      "id": 22,
+      "name": "Fortune",
+      "type": "fortune"
+    },
+    {
+      "id": 23,
+      "name": "Munich",
+      "type": "property",
+      "group": "germany",
+      "country": "Germany",
+      "price": 220,
+      "mortgage_value": 110,
+      "house_cost": 150,
+      "hotel_cost": 150,
+      "rent": {
+        "base": 18,
+        "monopoly": 36,
+        "house_1": 90,
+        "house_2": 250,
+        "house_3": 700,
+        "house_4": 875,
+        "hotel": 1050
+      }
+    },
+    {
+      "id": 24,
+      "name": "Frankfurt",
+      "type": "property",
+      "group": "germany",
+      "country": "Germany",
+      "price": 240,
+      "mortgage_value": 120,
+      "house_cost": 150,
+      "hotel_cost": 150,
+      "rent": {
+        "base": 20,
+        "monopoly": 40,
+        "house_1": 100,
+        "house_2": 300,
+        "house_3": 750,
+        "house_4": 925,
+        "hotel": 1100
+      }
+    },
+    {
+      "id": 25,
+      "name": "Skyport",
+      "type": "transport",
+      "group": "transport",
+      "price": 200,
+      "mortgage_value": 100,
+      "rent": {
+        "owned_1": 25,
+        "owned_2": 50,
+        "owned_3": 100,
+        "owned_4": 200
+      }
+    },
+    {
+      "id": 26,
+      "name": "Sydney",
+      "type": "property",
+      "group": "australia",
+      "country": "Australia",
+      "price": 260,
+      "mortgage_value": 130,
+      "house_cost": 150,
+      "hotel_cost": 150,
+      "rent": {
+        "base": 22,
+        "monopoly": 44,
+        "house_1": 110,
+        "house_2": 330,
+        "house_3": 800,
+        "house_4": 975,
+        "hotel": 1150
+      }
+    },
+    {
+      "id": 27,
+      "name": "Melbourne",
+      "type": "property",
+      "group": "australia",
+      "country": "Australia",
+      "price": 260,
+      "mortgage_value": 130,
+      "house_cost": 150,
+      "hotel_cost": 150,
+      "rent": {
+        "base": 22,
+        "monopoly": 44,
+        "house_1": 110,
+        "house_2": 330,
+        "house_3": 800,
+        "house_4": 975,
+        "hotel": 1150
+      }
+    },
+    {
+      "id": 28,
+      "name": "Aqueduct Works",
+      "type": "utility",
+      "group": "utility",
+      "price": 150,
+      "mortgage_value": 75,
+      "rent": {
+        "owned_1_multiplier": 4,
+        "owned_2_multiplier": 10,
+        "note": "Rent = dice roll x multiplier"
+      }
+    },
+    {
+      "id": 29,
+      "name": "Brisbane",
+      "type": "property",
+      "group": "australia",
+      "country": "Australia",
+      "price": 280,
+      "mortgage_value": 140,
+      "house_cost": 150,
+      "hotel_cost": 150,
+      "rent": {
+        "base": 24,
+        "monopoly": 48,
+        "house_1": 120,
+        "house_2": 360,
+        "house_3": 850,
+        "house_4": 1025,
+        "hotel": 1200
+      }
+    },
+    {
+      "id": 30,
+      "name": "Go To Jail",
+      "type": "go_to_jail"
+    },
+    {
+      "id": 31,
+      "name": "Manchester",
+      "type": "property",
+      "group": "uk",
+      "country": "UK",
+      "price": 300,
+      "mortgage_value": 150,
+      "house_cost": 200,
+      "hotel_cost": 200,
+      "rent": {
+        "base": 26,
+        "monopoly": 52,
+        "house_1": 130,
+        "house_2": 390,
+        "house_3": 900,
+        "house_4": 1100,
+        "hotel": 1275
+      }
+    },
+    {
+      "id": 32,
+      "name": "Birmingham",
+      "type": "property",
+      "group": "uk",
+      "country": "UK",
+      "price": 300,
+      "mortgage_value": 150,
+      "house_cost": 200,
+      "hotel_cost": 200,
+      "rent": {
+        "base": 26,
+        "monopoly": 52,
+        "house_1": 130,
+        "house_2": 390,
+        "house_3": 900,
+        "house_4": 1100,
+        "hotel": 1275
+      }
+    },
+    {
+      "id": 33,
+      "name": "Treasury",
+      "type": "treasury"
+    },
+    {
+      "id": 34,
+      "name": "London",
+      "type": "property",
+      "group": "uk",
+      "country": "UK",
+      "price": 320,
+      "mortgage_value": 160,
+      "house_cost": 200,
+      "hotel_cost": 200,
+      "rent": {
+        "base": 28,
+        "monopoly": 56,
+        "house_1": 150,
+        "house_2": 450,
+        "house_3": 1000,
+        "house_4": 1200,
+        "hotel": 1400
+      }
+    },
+    {
+      "id": 35,
+      "name": "Crossrail Junction",
+      "type": "transport",
+      "group": "transport",
+      "price": 200,
+      "mortgage_value": 100,
+      "rent": {
+        "owned_1": 25,
+        "owned_2": 50,
+        "owned_3": 100,
+        "owned_4": 200
+      }
+    },
+    {
+      "id": 36,
+      "name": "Fortune",
+      "type": "fortune"
+    },
+    {
+      "id": 37,
+      "name": "Washington D.C.",
+      "type": "property",
+      "group": "usa",
+      "country": "USA",
+      "price": 350,
+      "mortgage_value": 175,
+      "house_cost": 200,
+      "hotel_cost": 200,
+      "rent": {
+        "base": 35,
+        "monopoly": 70,
+        "house_1": 175,
+        "house_2": 500,
+        "house_3": 1100,
+        "house_4": 1300,
+        "hotel": 1500
+      }
+    },
+    {
+      "id": 38,
+      "name": "Luxury Tax",
+      "type": "tax",
+      "amount": 100
+    },
+    {
+      "id": 39,
+      "name": "New York City",
+      "type": "property",
+      "group": "usa",
+      "country": "USA",
+      "price": 400,
+      "mortgage_value": 200,
+      "house_cost": 200,
+      "hotel_cost": 200,
+      "rent": {
+        "base": 50,
+        "monopoly": 100,
+        "house_1": 200,
+        "house_2": 600,
+        "house_3": 1400,
+        "house_4": 1700,
+        "hotel": 2000
+      }
+    }
+  ],
+  "country_groups": {
+    "india": {
+      "country": "India",
+      "properties": [
+        "Mumbai",
+        "Delhi"
+      ],
+      "property_count": 2
+    },
+    "china": {
+      "country": "China",
+      "properties": [
+        "Shanghai",
+        "Beijing",
+        "Guangzhou"
+      ],
+      "property_count": 3
+    },
+    "brazil": {
+      "country": "Brazil",
+      "properties": [
+        "Rio de Janeiro",
+        "Sao Paulo",
+        "Brasilia"
+      ],
+      "property_count": 3
+    },
+    "russia": {
+      "country": "Russia",
+      "properties": [
+        "Moscow",
+        "St. Petersburg",
+        "Sochi"
+      ],
+      "property_count": 3
+    },
+    "germany": {
+      "country": "Germany",
+      "properties": [
+        "Berlin",
+        "Munich",
+        "Frankfurt"
+      ],
+      "property_count": 3
+    },
+    "australia": {
+      "country": "Australia",
+      "properties": [
+        "Sydney",
+        "Melbourne",
+        "Brisbane"
+      ],
+      "property_count": 3
+    },
+    "uk": {
+      "country": "UK",
+      "properties": [
+        "Manchester",
+        "Birmingham",
+        "London"
+      ],
+      "property_count": 3
+    },
+    "usa": {
+      "country": "USA",
+      "properties": [
+        "Washington D.C.",
+        "New York City"
+      ],
+      "property_count": 2
+    }
+  },
+  "building_rules": {
+    "total_houses_available": 32,
+    "total_hotels_available": 12,
+    "build_evenly_rule": "Houses must be built evenly across a color group; no property in a set may have more than 1 more house than any other property in the same set.",
+    "hotel_requirement": "A hotel is bought once a property has 4 houses; the 4 houses are returned to the bank and replaced with 1 hotel.",
+    "monopoly_required_to_build": true,
+    "mortgaged_property_cannot_build": true,
+    "selling_houses": "Houses/hotels sell back to bank at half of house_cost/hotel_cost."
+  },
+  "mortgage_rules": {
+    "mortgage_value": "Listed per tile as mortgage_value (property/transport/utility).",
+    "unmortgage_cost": "mortgage_value + 10% interest",
+    "mortgaged_property_no_rent": true
+  },
+  "fortune_cards": [
+    "Advance to GO (collect 200)",
+    "Advance to Grand Promenade",
+    "Advance to Pacifica; if you pass GO collect 200",
+    "Advance to nearest Transport Hub; pay owner double rent, or if unowned you may buy it",
+    "Advance to nearest Utility; if unowned you may buy it, if owned throw dice and pay owner 10x amount thrown",
+    "Bank pays you a dividend of 50",
+    "Get out of Jail Free (this card may be kept until needed or sold/traded)",
+    "Go back 3 spaces",
+    "Go to Jail; do not pass GO, do not collect 200",
+    "Make general repairs on all your property: 25 per house, 100 per hotel",
+    "Pay poor tax of 15",
+    "Take a trip to Central Station; if you pass GO collect 200",
+    "Take a walk to Grand Promenade; advance token to that tile",
+    "You have been elected Chairperson: pay each player 50",
+    "Your building loan matures: collect 150",
+    "You win a crossword competition: collect 100"
+  ],
+  "treasury_cards": [
+    "Advance to GO (collect 200)",
+    "Bank error in your favor: collect 200",
+    "Doctor's fees: pay 50",
+    "From sale of stock you get 50",
+    "Get Out of Jail Free (this card may be kept until needed or sold/traded)",
+    "Go to Jail; do not pass GO, do not collect 200",
+    "Holiday fund matures: collect 100",
+    "Income tax refund: collect 20",
+    "It is your birthday: collect 10 from every player",
+    "Life insurance matures: collect 100",
+    "Pay hospital fees of 100",
+    "Pay school fees of 150",
+    "Receive 25 consultancy fee",
+    "You are assessed for street repairs: 40 per house, 115 per hotel",
+    "You have won second prize in a beauty contest: collect 10",
+    "You inherit 100"
+  ]
+}

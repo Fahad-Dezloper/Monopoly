@@ -1,0 +1,8 @@
+# pnpm 10+ reads build-script approval from here, not package.json.
+allowBuilds:
+  # Prisma needs its postinstall to fetch engines + generate the client.
+  '@prisma/client': true
+  '@prisma/engines': true
+  prisma: true
+  # Telemetry only — deliberately not built.
+  '@scarf/scarf': false

@@ -1,0 +1,6 @@
+# pnpm 10+ reads build-script approval from here, not package.json.
+allowBuilds:
+  # next/image optimization binary.
+  sharp: true
+  # native module resolver used by eslint-config-next.
+  unrs-resolver: true

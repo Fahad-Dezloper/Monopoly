@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 16" fill="none" aria-hidden="true">
+  <!-- classic red monopoly hotel -->
+  <path d="M1 5.4 7 0.9l6 4.5V15H1V5.4Z" fill="#9f1239"/>
+  <path d="M2 5.7 7 2l5 3.7V14H2V5.7Z" fill="#e11d48"/>
+  <path d="M1 5.4 7 0.9l6 4.5-.95.7L7 2.55 1.95 6.1 1 5.4Z" fill="#fb7185"/>
+  <rect x="4.1" y="7.2" width="2.2" height="2.2" fill="#fff5f5" opacity=".9"/>
+  <rect x="7.7" y="7.2" width="2.2" height="2.2" fill="#fff5f5" opacity=".9"/>
+  <rect x="4.1" y="10.4" width="2.2" height="2.2" fill="#fff5f5" opacity=".75"/>
+  <rect x="7.7" y="10.4" width="2.2" height="3.6" fill="#450a0a"/>
+</svg>

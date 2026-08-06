@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 14" fill="none" aria-hidden="true">
+  <!-- classic green monopoly house -->
+  <path d="M1.2 6.2 8 1.1l6.8 5.1V13H1.2V6.2Z" fill="#0f7a3a"/>
+  <path d="M2.2 6.5 8 2.2l5.8 4.3V12H2.2V6.5Z" fill="#45ff8a"/>
+  <path d="M1.2 6.2 8 1.1l6.8 5.1-1 0.75L8 2.85 2.2 6.95l-1-.75Z" fill="#1db954"/>
+  <rect x="6.4" y="8.2" width="3.2" height="3.8" fill="#0b3d24"/>
+  <rect x="6.9" y="8.6" width="2.2" height="1.4" fill="#7dffb0" opacity=".55"/>
+</svg>

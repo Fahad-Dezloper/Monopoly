@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm -v)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm prisma:generate)",
+      "Bash(pnpm build *)",
+      "Bash(echo \"INSTALL_EXIT=$?\")",
+      "Bash(echo \"SERVER_EXIT=$?\")",
+      "Bash(echo \"WEB_EXIT=$?\")",
+      "Bash(./node_modules/.bin/next build *)",
+      "Bash(./node_modules/.bin/eslint src *)",
+      "Bash(echo \"LINT_EXIT=$?\")"
+    ]
+  }
+}

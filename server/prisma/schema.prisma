@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoomStatus {
+  LOBBY
+  PLAYING
+  FINISHED
+}
+
+enum GameResult {
+  WIN
+  LOSS
+  DRAW
+  ABANDONED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hostedRooms Room[]        @relation("RoomHost")
+  memberships RoomMember[]
+  matches     MatchPlayer[]
+}
+
+model Room {
+  id         String     @id @default(cuid())
+  code       String     @unique
+  hostId     String
+  status     RoomStatus @default(LOBBY)
+  maxPlayers Int        @default(4)
+  isPrivate  Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  host    User         @relation("RoomHost", fields: [hostId], references: [id])
+  members RoomMember[]
+  games   Game[]
+}
+
+model RoomMember {
+  id       String   @id @default(cuid())
+  roomId   String
+  userId   String
+  seat     Int?
+  ready    Boolean  @default(false)
+  isHost   Boolean  @default(false)
+  color    String?
+  joinedAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+}
+
+model Game {
+  id           String     @id @default(cuid())
+  roomId       String
+  status       RoomStatus @default(PLAYING)
+  startedAt    DateTime   @default(now())
+  finishedAt   DateTime?
+  winnerUserId String?
+  snapshotJson String?    @db.Text
+
+  room    Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  players MatchPlayer[]
+
+  @@index([roomId])
+}
+
+model MatchPlayer {
+  id           String      @id @default(cuid())
+  gameId       String
+  userId       String
+  seat         Int
+  result       GameResult?
+  finalMoney   Int?
+  propertiesOwned Int      @default(0)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, userId])
+  @@index([userId])
+}
