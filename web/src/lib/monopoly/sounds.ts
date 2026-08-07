@@ -1,5 +1,5 @@
-
-type SfxName = "cashIn" | "cashOut" | "buy" | "move" | "roll" | "eliminate" | "turn";
+type SfxName =
+  "cashIn" | "cashOut" | "buy" | "move" | "roll" | "eliminate" | "turn";
 
 let ctx: AudioContext | null = null;
 let muted = false;

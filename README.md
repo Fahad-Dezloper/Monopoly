@@ -4,11 +4,17 @@ Multiplayer property-trading game (Monopoly-style) with a NestJS game server and
 
 The board is themed around real cities by country (India, China, Brazil, Russia, Germany, Australia, UK, USA), driven by `monopoly_board_game.json`.
 
-| Folder | Role |
-|--------|------|
-| `web/` | Next.js frontend (UI only) |
-| `server/` | NestJS backend — rooms, multiplayer, and the full game engine in `server/src/engine/` |
-| `docker-compose.yml` | Postgres + Redis (+ Redis Insight) for local infra |
+| Folder               | Role                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| `web/`               | Next.js frontend (UI only)                                                                       |
+| `server/`            | NestJS backend — rooms, multiplayer, and the full game engine in `server/src/engine/`            |
+| `onchain/`           | The same rule set as a Solana program on a MagicBlock ephemeral rollup — see `onchain/README.md` |
+| `docker-compose.yml` | Postgres + Redis (+ Redis Insight) for local infra                                               |
+
+**The board art is generated, not drawn.** `web/public/board/board.svg` comes
+out of `pnpm --filter robinverse-web gen:board`, which reads the same dataset
+the engine plays from. Edit the JSON, re-run it; never hand-edit the SVG, or
+the names and prices on the board drift from the ones the game charges.
 
 ---
 
@@ -44,10 +50,10 @@ docker compose up -d
 
 Starts:
 
-| Service | Port |
-|---------|------|
-| Postgres | `5432` |
-| Redis | `6379` |
+| Service       | Port   |
+| ------------- | ------ |
+| Postgres      | `5432` |
+| Redis         | `6379` |
 | Redis Insight | `5540` |
 
 For a zero-infra local run, keep `REDIS_MODE=memory` in `server/.env` (default in `.env.example`). Postgres is only required if you use Prisma-backed player persistence.
@@ -85,22 +91,22 @@ Default client base URL is `/api` (`NEXT_PUBLIC_API_URL`). Override the proxy ta
 
 ### `server/.env`
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `PORT` | `4000` | HTTP port |
-| `CORS_ORIGIN` | `http://localhost:3000` | Allowed origins (comma-separated) |
-| `DATABASE_URL` | Postgres URL | Prisma / players |
-| `REDIS_URL` | `redis://localhost:6379` | Room state store |
-| `REDIS_MODE` | `memory` | `memory` = in-process Map; `redis` = ioredis |
+| Variable       | Default                  | Purpose                                      |
+| -------------- | ------------------------ | -------------------------------------------- |
+| `PORT`         | `4000`                   | HTTP port                                    |
+| `CORS_ORIGIN`  | `http://localhost:3000`  | Allowed origins (comma-separated)            |
+| `DATABASE_URL` | Postgres URL             | Prisma / players                             |
+| `REDIS_URL`    | `redis://localhost:6379` | Room state store                             |
+| `REDIS_MODE`   | `memory`                 | `memory` = in-process Map; `redis` = ioredis |
 
 Copy from `server/.env.example`.
 
 ### `web` (optional)
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `NEXT_PUBLIC_API_URL` | `/api` | Client API prefix |
-| `API_PROXY_TARGET` | `http://localhost:4000` | Next.js rewrite destination |
+| Variable              | Default                 | Purpose                     |
+| --------------------- | ----------------------- | --------------------------- |
+| `NEXT_PUBLIC_API_URL` | `/api`                  | Client API prefix           |
+| `API_PROXY_TARGET`    | `http://localhost:4000` | Next.js rewrite destination |
 
 ---
 
@@ -171,17 +177,17 @@ flowchart TB
   GatewayModule --> GameModule
 ```
 
-| Module | Responsibility |
-|--------|----------------|
-| `ConfigModule` | Env: `PORT`, `CORS_ORIGIN`, `REDIS_*`, `DATABASE_URL` |
-| `RoomsModule` | Lobby lifecycle, actions, seat map, AFK sweep |
-| `engine/` (imported by rooms) | Board + `startGame` / `gameReducer` — all rules |
-| `GameModule` | Thin helpers (`next`, `buy`, …) used mainly by the gateway |
-| `GatewayModule` | Socket.IO namespace `/game` (parallel API; unused by web today) |
-| `RedisModule` | KV: rooms, optional player/socket maps |
-| `PlayersModule` | Guest profiles (Prisma if up, else Redis) |
-| `PrismaModule` | Optional Postgres; soft-fails if DB is down |
-| `HealthController` | `GET /api/health` |
+| Module                        | Responsibility                                                  |
+| ----------------------------- | --------------------------------------------------------------- |
+| `ConfigModule`                | Env: `PORT`, `CORS_ORIGIN`, `REDIS_*`, `DATABASE_URL`           |
+| `RoomsModule`                 | Lobby lifecycle, actions, seat map, AFK sweep                   |
+| `engine/` (imported by rooms) | Board + `startGame` / `gameReducer` — all rules                 |
+| `GameModule`                  | Thin helpers (`next`, `buy`, …) used mainly by the gateway      |
+| `GatewayModule`               | Socket.IO namespace `/game` (parallel API; unused by web today) |
+| `RedisModule`                 | KV: rooms, optional player/socket maps                          |
+| `PlayersModule`               | Guest profiles (Prisma if up, else Redis)                       |
+| `PrismaModule`                | Optional Postgres; soft-fails if DB is down                     |
+| `HealthController`            | `GET /api/health`                                               |
 
 Bootstrap (`main.ts`): global prefix `api`, CORS, Swagger at `/api/docs`, port `4000`.
 
@@ -242,38 +248,38 @@ engine/engine.ts    → startGame / beginTurn / gameReducer
 RoomsService.start / applyAction
 ```
 
-| Piece | Role |
-|-------|------|
-| `startGame(setups)` | Build board, shuffle order, starting cash, first `beginTurn()` |
-| `beginTurn()` | Advance to next alive player; set `turnDeadlineAt = now + 3m` |
-| `gameReducer(prev, action)` | Pure-ish state transition for all Monopoly actions |
-| `SKIP_TURN` | System timeout path → eliminate current player |
+| Piece                       | Role                                                           |
+| --------------------------- | -------------------------------------------------------------- |
+| `startGame(setups)`         | Build board, shuffle order, starting cash, first `beginTurn()` |
+| `beginTurn()`               | Advance to next alive player; set `turnDeadlineAt = now + 3m`  |
+| `gameReducer(prev, action)` | Pure-ish state transition for all Monopoly actions             |
+| `SKIP_TURN`                 | System timeout path → eliminate current player                 |
 
 The web’s `web/src/lib/monopoly/` holds **types and action shapes only**. Multiplayer outcomes always come from the server engine.
 
 ### Storage: Redis vs memory
 
-| `REDIS_MODE` | Behavior |
-|--------------|----------|
-| `memory` (default) | In-process `Map` — fine for single-server local dev |
-| `redis` | `ioredis` via `REDIS_URL`; falls back to memory if connect fails |
+| `REDIS_MODE`       | Behavior                                                         |
+| ------------------ | ---------------------------------------------------------------- |
+| `memory` (default) | In-process `Map` — fine for single-server local dev              |
+| `redis`            | `ioredis` via `REDIS_URL`; falls back to memory if connect fails |
 
 **Keys**
 
-| Key | Contents |
-|-----|----------|
-| `room:{CODE}` | Full `RoomState` JSON (lobby + `game` + `seats` + `version`) |
-| `player:{id}` | Guest profile cache (optional) |
-| `socket:{id}` / `socket-room:{id}` | Gateway disconnect / room leave maps |
+| Key                                | Contents                                                     |
+| ---------------------------------- | ------------------------------------------------------------ |
+| `room:{CODE}`                      | Full `RoomState` JSON (lobby + `game` + `seats` + `version`) |
+| `player:{id}`                      | Guest profile cache (optional)                               |
+| `socket:{id}` / `socket-room:{id}` | Gateway disconnect / room leave maps                         |
 
 Room JSON TTL ≈ **6 hours**. Postgres/`prisma` Room & Game models exist in the schema for later match history — **not wired into `RoomsService` yet**.
 
 ### REST vs Socket.IO
 
-| Transport | Used by web? | Role |
-|-----------|--------------|------|
-| **REST** `/api/rooms/*` | **Yes** | Create, join, start, action, poll |
-| **Socket.IO** `/game` | No (not wired in client) | Same room/game services; push `ROOM_UPDATED` / game events |
+| Transport               | Used by web?             | Role                                                       |
+| ----------------------- | ------------------------ | ---------------------------------------------------------- |
+| **REST** `/api/rooms/*` | **Yes**                  | Create, join, start, action, poll                          |
+| **Socket.IO** `/game`   | No (not wired in client) | Same room/game services; push `ROOM_UPDATED` / game events |
 
 Prefer REST+polling for the current MVP; gateway is ready when the client switches to realtime.
 
@@ -305,19 +311,19 @@ flowchart LR
 
 ### Server folder map
 
-| Path | Role |
-|------|------|
-| `src/main.ts` | Bootstrap, CORS, Swagger |
-| `src/app.module.ts` | Module graph |
-| `src/rooms/` | HTTP + room state machine + AFK |
-| `src/engine/` | Rules, board, reducer, turn limit |
-| `src/data/monopoly_board_game.json` | Board dataset |
-| `src/game/` | Thin façade for gateway actions |
-| `src/gateway/` | Socket.IO `/game` |
-| `src/redis/` | Redis + memory KV |
-| `src/players/` | Guest identity |
-| `src/prisma/` | Optional DB client |
-| `src/common/events.ts` | Socket event name constants |
+| Path                                | Role                              |
+| ----------------------------------- | --------------------------------- |
+| `src/main.ts`                       | Bootstrap, CORS, Swagger          |
+| `src/app.module.ts`                 | Module graph                      |
+| `src/rooms/`                        | HTTP + room state machine + AFK   |
+| `src/engine/`                       | Rules, board, reducer, turn limit |
+| `src/data/monopoly_board_game.json` | Board dataset                     |
+| `src/game/`                         | Thin façade for gateway actions   |
+| `src/gateway/`                      | Socket.IO `/game`                 |
+| `src/redis/`                        | Redis + memory KV                 |
+| `src/players/`                      | Guest identity                    |
+| `src/prisma/`                       | Optional DB client                |
+| `src/common/events.ts`              | Socket event name constants       |
 
 More detail also lives in [`server/README.md`](server/README.md).
 
@@ -325,10 +331,10 @@ More detail also lives in [`server/README.md`](server/README.md).
 
 ## How multiplayer works (player view)
 
-1. Host creates a room → receives a code  
-2. Others join with the code  
-3. Host starts → seats map to engine players (order can shuffle)  
-4. Clients poll `GET /api/rooms/:code` (~800ms) and post actions to `POST /api/rooms/:code/action`  
+1. Host creates a room → receives a code
+2. Others join with the code
+3. Host starts → seats map to engine players (order can shuffle)
+4. Clients poll `GET /api/rooms/:code` (~800ms) and post actions to `POST /api/rooms/:code/action`
 5. Server applies actions through `gameReducer`, enforces turn ownership, and persists room state (Redis or memory)
 
 ### Turn timer (3 minutes)
@@ -336,7 +342,7 @@ More detail also lives in [`server/README.md`](server/README.md).
 - Each turn gets `turnDeadlineAt = now + 3 minutes`
 - Countdown is shown in the board center
 - On expiry the current player is **eliminated** (bankrupt; assets return to the bank)
-- If one player remains → they win  
+- If one player remains → they win
 - If two or more remain → the game continues without the AFK player
 
 ---
@@ -345,16 +351,16 @@ More detail also lives in [`server/README.md`](server/README.md).
 
 Base path: `/api`
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/health` | Health check |
-| `POST` | `/rooms` | Create room |
-| `GET` | `/rooms/:code` | Get room (also enforces turn timeout) |
-| `POST` | `/rooms/:code/join` | Join lobby |
-| `POST` | `/rooms/:code` | Lobby actions: `join` \| `leave` \| `start` \| `ready` |
-| `POST` | `/rooms/:code/action` | Body: `{ playerId, gameAction }` |
-| `POST` | `/players/guest` | Ensure guest profile |
-| `GET` | `/players/:id` | Get player |
+| Method | Path                  | Description                                            |
+| ------ | --------------------- | ------------------------------------------------------ |
+| `GET`  | `/health`             | Health check                                           |
+| `POST` | `/rooms`              | Create room                                            |
+| `GET`  | `/rooms/:code`        | Get room (also enforces turn timeout)                  |
+| `POST` | `/rooms/:code/join`   | Join lobby                                             |
+| `POST` | `/rooms/:code`        | Lobby actions: `join` \| `leave` \| `start` \| `ready` |
+| `POST` | `/rooms/:code/action` | Body: `{ playerId, gameAction }`                       |
+| `POST` | `/players/guest`      | Ensure guest profile                                   |
+| `GET`  | `/players/:id`        | Get player                                             |
 
 Full interactive docs: [Swagger UI](http://localhost:4000/api/docs).
 
@@ -387,21 +393,21 @@ Full interactive docs: [Swagger UI](http://localhost:4000/api/docs).
 
 ### Server (`cd server`)
 
-| Script | Description |
-|--------|-------------|
-| `pnpm start:dev` | Nest watch mode |
+| Script                           | Description            |
+| -------------------------------- | ---------------------- |
+| `pnpm start:dev`                 | Nest watch mode        |
 | `pnpm build` / `pnpm start:prod` | Production build & run |
-| `pnpm prisma:generate` | Generate Prisma client |
-| `pnpm prisma:migrate` | Dev migrations |
-| `pnpm prisma:studio` | Prisma Studio |
+| `pnpm prisma:generate`           | Generate Prisma client |
+| `pnpm prisma:migrate`            | Dev migrations         |
+| `pnpm prisma:studio`             | Prisma Studio          |
 
 ### Web (`cd web`)
 
-| Script | Description |
-|--------|-------------|
-| `pnpm dev` | Next.js dev server |
-| `pnpm build` / `pnpm start` | Production |
-| `pnpm lint` | ESLint |
+| Script                      | Description        |
+| --------------------------- | ------------------ |
+| `pnpm dev`                  | Next.js dev server |
+| `pnpm build` / `pnpm start` | Production         |
+| `pnpm lint`                 | ESLint             |
 
 ---
 

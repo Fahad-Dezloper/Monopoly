@@ -1,7 +1,6 @@
 import boardData from "../data/monopoly_board_game.json";
 import type { Square } from "./types";
 
-/** Raw Meridia board dataset (source of truth for cities, rents, cards, rules). */
 export type BoardDataset = typeof boardData;
 
 export const BOARD_DATA: BoardDataset = boardData;
@@ -10,11 +9,9 @@ export const GAME_META = BOARD_DATA.meta;
 export const BUILDING_RULES = BOARD_DATA.building_rules;
 export const MORTGAGE_RULES = BOARD_DATA.mortgage_rules;
 
-/** Fortune = Chance; Treasury = Community Chest. */
 export const CHANCE_TEXTS = [...BOARD_DATA.fortune_cards];
 export const COMMUNITY_CHEST_TEXTS = [...BOARD_DATA.treasury_cards];
 
-/** Classic Monopoly color order mapped onto country groups from the JSON. */
 const GROUP_COLORS: Record<string, string> = {
   india: "#8B4513",
   china: "#87CEEB",
@@ -52,7 +49,6 @@ const COUNTRY_FLAG: Record<string, string> = {
   USA: "us",
 };
 
-/** Card text destinations that use thematic aliases instead of city names. */
 const DESTINATION_ALIASES: Record<string, string> = {
   "Grand Promenade": "New York City",
   Pacifica: "Frankfurt",
@@ -63,7 +59,8 @@ function shortLabel(name: string): string {
   if (cleaned.length <= 10) return cleaned.toLowerCase();
   const parts = cleaned.split(/\s+/);
   if (parts.length === 1) return cleaned.slice(0, 9).toLowerCase();
-  if (parts[0].length <= 3) return `${parts[0]} ${parts[1]}`.toLowerCase().slice(0, 10);
+  if (parts[0].length <= 3)
+    return `${parts[0]} ${parts[1]}`.toLowerCase().slice(0, 10);
   return parts[0].toLowerCase().slice(0, 10);
 }
 
@@ -97,7 +94,6 @@ function emptySquare(index: number, name: string, color = "#FFFFFF"): Square {
   };
 }
 
-/** Build runtime squares from monopoly_board_game.json. */
 export function createClassicBoard(): Square[] {
   const squares: Square[] = Array.from({ length: 40 }, (_, i) =>
     emptySquare(i, `Tile ${i}`),
@@ -255,7 +251,6 @@ export function findSquareIndexByName(name: string): number {
   return hit?.index ?? -1;
 }
 
-/** Resolve a named destination once (cached board). */
 let cachedBoard: Square[] | null = null;
 function boardSnapshot(): Square[] {
   if (!cachedBoard) cachedBoard = createClassicBoard();
@@ -299,12 +294,27 @@ export const DEFAULT_COLORS = [
   "purple",
 ] as const;
 
-/** Board grid positions: row/col for CSS grid (1-indexed for 11x11). */
 export const BOARD_LAYOUT: { index: number; row: number; col: number }[] = [
-  ...Array.from({ length: 11 }, (_, i) => ({ index: 20 + i, row: 1, col: i + 1 })),
-  ...Array.from({ length: 9 }, (_, i) => ({ index: 31 + i, row: i + 2, col: 11 })),
-  ...Array.from({ length: 11 }, (_, i) => ({ index: 10 - i, row: 11, col: i + 1 })),
-  ...Array.from({ length: 9 }, (_, i) => ({ index: 19 - i, row: i + 2, col: 1 })),
+  ...Array.from({ length: 11 }, (_, i) => ({
+    index: 20 + i,
+    row: 1,
+    col: i + 1,
+  })),
+  ...Array.from({ length: 9 }, (_, i) => ({
+    index: 31 + i,
+    row: i + 2,
+    col: 11,
+  })),
+  ...Array.from({ length: 11 }, (_, i) => ({
+    index: 10 - i,
+    row: 11,
+    col: i + 1,
+  })),
+  ...Array.from({ length: 9 }, (_, i) => ({
+    index: 19 - i,
+    row: i + 2,
+    col: 1,
+  })),
 ];
 
 export function cellSide(

@@ -67,7 +67,10 @@ export function Dialog({
         )}
       >
         {accent && (
-          <span className="h-1.5 w-full shrink-0" style={{ background: accent }} />
+          <span
+            className="h-1.5 w-full shrink-0"
+            style={{ background: accent }}
+          />
         )}
 
         <header
@@ -82,7 +85,9 @@ export function Dialog({
                 {eyebrow}
               </div>
             )}
-            <h2 className="text-[19px] leading-tight font-extrabold">{title}</h2>
+            <h2 className="text-[19px] leading-tight font-extrabold">
+              {title}
+            </h2>
             {subtitle && (
               <div className="mt-1 text-[12.5px] leading-normal opacity-75">
                 {subtitle}

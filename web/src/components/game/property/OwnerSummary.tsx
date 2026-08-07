@@ -2,7 +2,11 @@
 
 import { cardColor } from "@/components/game/rail/playerPalette";
 import { money } from "@/lib/monopoly/panelView";
-import { groupLabel, groupProgress, playerHoldings } from "@/lib/monopoly/stats";
+import {
+  groupLabel,
+  groupProgress,
+  playerHoldings,
+} from "@/lib/monopoly/stats";
 import type { GameState, Player, Square } from "@/lib/monopoly/types";
 
 interface OwnerSummaryProps {
@@ -33,7 +37,9 @@ export function OwnerSummary({
     <section className="overflow-hidden rounded-sm border border-line">
       <header
         className="flex items-center gap-2.5 px-2.5 py-2"
-        style={{ background: `color-mix(in srgb, ${tint} 22%, var(--color-surface-2))` }}
+        style={{
+          background: `color-mix(in srgb, ${tint} 22%, var(--color-surface-2))`,
+        }}
       >
         <span
           className="grid size-8 shrink-0 place-items-center rounded-full text-[11px] font-extrabold text-ink"

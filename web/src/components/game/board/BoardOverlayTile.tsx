@@ -6,6 +6,14 @@ import type { TileRect } from "@/lib/monopoly/boardGeometry";
 import type { Player, Square } from "@/lib/monopoly/types";
 import { cx } from "@/lib/ui";
 
+const BAND_EDGE: Record<TileRect["side"], string> = {
+  top: "inset-x-0 bottom-[3%] flex-row justify-center",
+  bottom: "inset-x-0 top-[3%] flex-row justify-center",
+  left: "inset-y-0 right-[3%] flex-col justify-center",
+  right: "inset-y-0 left-[3%] flex-col justify-center",
+  corner: "inset-x-0 top-[3%] flex-row justify-center",
+};
+
 interface BoardOverlayTileProps {
   rect: TileRect;
   square: Square;
@@ -58,7 +66,7 @@ export function BoardOverlayTile({
       <BuildMarker
         square={square}
         compact
-        className="absolute inset-x-0 top-[4%] z-20 flex justify-center gap-[2px]"
+        className={cx("absolute z-20 flex gap-[2px]", BAND_EDGE[rect.side])}
       />
       <PlayerTokens players={playersHere} hopping={hopping} />
     </button>

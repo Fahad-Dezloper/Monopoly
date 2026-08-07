@@ -32,6 +32,7 @@ interface GameScreenProps {
   isMyTurn: boolean;
   error: string | null;
   messages: ChatMessage[];
+  awaitingChain?: boolean;
   act: (action: GameAction) => void;
   onSendChat: (text: string) => void;
   onLeave: () => void;
@@ -45,11 +46,13 @@ export function GameScreen({
   isMyTurn,
   error,
   messages,
+  awaitingChain = false,
   act,
   onSendChat,
   onLeave,
 }: GameScreenProps) {
-  const { rolling: diceRolling, startRoll } = useDiceRoll();
+  const { rolling: localRolling, startRoll } = useDiceRoll();
+  const diceRolling = localRolling || awaitingChain;
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showRules, setShowRules] = useState(false);
   const [tradeDismissed, setTradeDismissed] = useState(false);
@@ -83,10 +86,6 @@ export function GameScreen({
 
   const showTrade = !!state.trade && !tradeDismissed;
   const current = state.players[state.turn];
-  const focusIndex = selectedIndex ?? current?.position ?? null;
-  const focus =
-    focusIndex != null && focusIndex >= 0 ? state.squares[focusIndex] : null;
-
   const landedSquare = state.squares[current?.position ?? 0];
   const canBuy =
     isMyTurn &&

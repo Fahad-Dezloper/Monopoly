@@ -22,7 +22,8 @@ export function TurnBanner({ current, isMyTurn, error }: TurnBannerProps) {
         <strong className="text-body">Your turn</strong>
       ) : (
         <span>
-          Waiting for <strong className="text-body">{current?.name ?? "…"}</strong>
+          Waiting for{" "}
+          <strong className="text-body">{current?.name ?? "…"}</strong>
         </span>
       )}
       <span className="ml-auto text-bad">{error}</span>

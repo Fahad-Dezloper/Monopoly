@@ -24,7 +24,9 @@ export function GameOverView({ state, winner, mySeat }: GameOverViewProps) {
     <PanelShell
       eyebrow="Game over"
       title={`${champion?.name} wins`}
-      subtitle={mySeat === winner ? "That's you — well played" : "Last player standing"}
+      subtitle={
+        mySeat === winner ? "That's you — well played" : "Last player standing"
+      }
       accent={cardColor(winner)}
       tone="positive"
     >

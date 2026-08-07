@@ -9,12 +9,6 @@ import { ChatFeed } from "@/components/shared/ChatFeed";
 import type { ChatMessage } from "@/lib/api/types";
 import type { GameState } from "@/lib/monopoly/types";
 
-const TAB_TITLE: Record<RailTab, string> = {
-  log: "Game Log",
-  chat: "Chat",
-  deals: "Deals",
-};
-
 interface RailChatPanelProps {
   state: GameState;
   mySeat: number | null;

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { EntryMockView } from "@/components/mock/EntryMockView";
 import { GameMockView } from "@/components/mock/GameMockView";
-import { HomeMockView } from "@/components/mock/HomeMockView";
-import { LobbyMockView } from "@/components/mock/LobbyMockView";
 import { MockControls } from "@/components/mock/MockControls";
 import {
   defaultFlags,
@@ -19,8 +18,7 @@ export function MockStudio() {
     Record<MockScreen, Record<string, MockFlag>>
   >({
     game: defaultFlags("game"),
-    lobby: defaultFlags("lobby"),
-    home: defaultFlags("home"),
+    entry: defaultFlags("entry"),
   });
 
   const flags = flagsByScreen[screen];
@@ -49,11 +47,8 @@ export function MockStudio() {
             onAction={(action) => setLastAction(JSON.stringify(action))}
           />
         )}
-        {screen === "lobby" && (
-          <LobbyMockView flags={flags} onAction={setLastAction} />
-        )}
-        {screen === "home" && (
-          <HomeMockView flags={flags} onAction={setLastAction} />
+        {screen === "entry" && (
+          <EntryMockView flags={flags} onAction={setLastAction} />
         )}
       </div>
 

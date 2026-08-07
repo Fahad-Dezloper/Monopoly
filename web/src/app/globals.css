@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "./legacy.css";
+@import "./pieces.css";
 
 @theme {
   --color-ink: #1a1a1a;
@@ -41,22 +41,49 @@
   --animate-token-hop: token-hop 0.42s ease-out;
 
   @keyframes money-float {
-    0% { opacity: 0; transform: translateY(4px); }
-    25% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-8px); }
+    0% {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    25% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
   }
   @keyframes clock-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
   }
   @keyframes token-hop {
-    0% { transform: translateY(0) scale(1); }
-    45% { transform: translateY(-7px) scale(1.15); }
-    100% { transform: translateY(0) scale(1); }
+    0% {
+      transform: translateY(0) scale(1);
+    }
+    45% {
+      transform: translateY(-7px) scale(1.15);
+    }
+    100% {
+      transform: translateY(0) scale(1);
+    }
   }
   @keyframes scroll-hint {
-    0%, 100% { opacity: 1; transform: translate(-50%, 0); }
-    50% { opacity: 0.3; transform: translate(-50%, 7px); }
+    0%,
+    100% {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+    50% {
+      opacity: 0.3;
+      transform: translate(-50%, 7px);
+    }
   }
 }
 

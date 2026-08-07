@@ -45,9 +45,7 @@ export function MoneySummary({ holdings }: MoneySummaryProps) {
           />
         </div>
         <div className="flex items-center justify-between text-[10.5px]">
-          <span className="font-semibold text-good">
-            {cashShare}% liquid
-          </span>
+          <span className="font-semibold text-good">{cashShare}% liquid</span>
           <span className="text-dim">
             {money(holdings.invested)} in property
           </span>

@@ -50,7 +50,10 @@ export function TradeDialog({ state, mySeat, act, onClose }: TradeDialogProps) {
   ];
 
   return (
-    <div className="fixed inset-0 z-60 grid place-items-center bg-black/65 p-5" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-60 grid place-items-center bg-black/65 p-5"
+      onClick={onClose}
+    >
       <div
         className="flex max-h-[86vh] w-[min(720px,100%)] flex-col overflow-auto rounded-panel border border-line bg-surface shadow-panel"
         onClick={(event) => event.stopPropagation()}
@@ -68,8 +71,14 @@ export function TradeDialog({ state, mySeat, act, onClose }: TradeDialogProps) {
 
         <div className="grid grid-cols-2 gap-3 p-3.5 max-[720px]:grid-cols-1">
           {columns.map(({ seat, side, player }) => (
-            <div key={side} className="flex min-w-0 flex-col gap-2 rounded-[11px] border border-line bg-surface-2 p-2.5">
-              <div className="text-[13px] font-bold" style={{ color: player.color }}>
+            <div
+              key={side}
+              className="flex min-w-0 flex-col gap-2 rounded-[11px] border border-line bg-surface-2 p-2.5"
+            >
+              <div
+                className="text-[13px] font-bold"
+                style={{ color: player.color }}
+              >
                 {side === "right" && state.playerCount > 2 ? (
                   <select
                     className={input}
@@ -120,7 +129,10 @@ export function TradeDialog({ state, mySeat, act, onClose }: TradeDialogProps) {
                   <div className="text-[11px] text-dim">No tradable deeds.</div>
                 )}
                 {tradableFor(seat).map((square) => (
-                  <label key={square.index} className="flex items-center gap-1.75 px-0.5 py-1 text-[12px]">
+                  <label
+                    key={square.index}
+                    className="flex items-center gap-1.75 px-0.5 py-1 text-[12px]"
+                  >
                     <input
                       type="checkbox"
                       checked={
@@ -147,7 +159,10 @@ export function TradeDialog({ state, mySeat, act, onClose }: TradeDialogProps) {
             <>
               <button
                 type="button"
-                className={cx(btn, "flex-1 border-accent bg-accent text-white hover:not-disabled:border-accent-hover hover:not-disabled:bg-accent-hover")}
+                className={cx(
+                  btn,
+                  "flex-1 border-accent bg-accent text-white hover:not-disabled:border-accent-hover hover:not-disabled:bg-accent-hover",
+                )}
                 onClick={() => act({ type: "PROPOSE_TRADE" })}
               >
                 Propose deal
@@ -167,7 +182,10 @@ export function TradeDialog({ state, mySeat, act, onClose }: TradeDialogProps) {
             <>
               <button
                 type="button"
-                className={cx(btn, "flex-1 border-accent bg-accent text-white hover:not-disabled:border-accent-hover hover:not-disabled:bg-accent-hover")}
+                className={cx(
+                  btn,
+                  "flex-1 border-accent bg-accent text-white hover:not-disabled:border-accent-hover hover:not-disabled:bg-accent-hover",
+                )}
                 disabled={!iAmRecipient}
                 title={iAmRecipient ? "" : "Waiting for the other player"}
                 onClick={() => act({ type: "ACCEPT_TRADE" })}

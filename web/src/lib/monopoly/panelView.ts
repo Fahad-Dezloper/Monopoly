@@ -4,7 +4,12 @@ import type { GameState, Square } from "@/lib/monopoly/types";
 export type PanelView =
   | { kind: "idle" }
   | { kind: "gameOver"; winner: number }
-  | { kind: "auction"; square: Square; highestBid: number; highestBidder: number }
+  | {
+      kind: "auction";
+      square: Square;
+      highestBid: number;
+      highestBidder: number;
+    }
   | { kind: "dealPending" }
   | { kind: "landedBuy"; square: Square; price: number; cashAfter: number }
   | { kind: "landedShort"; square: Square; price: number; shortBy: number }

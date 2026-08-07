@@ -105,7 +105,11 @@ export class RoomsController {
     @Param("code") code: string,
     @Body() body: { playerId: string; text: string },
   ) {
-    const room = await this.rooms.postMessage(code, body.playerId, body.text ?? "");
+    const room = await this.rooms.postMessage(
+      code,
+      body.playerId,
+      body.text ?? "",
+    );
     return { room: this.rooms.toPublic(room) };
   }
 

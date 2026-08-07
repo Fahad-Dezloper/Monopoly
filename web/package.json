@@ -6,10 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "gen:board": "node scripts/gen-board-svg.mjs",
+    "sync:idl": "cp ../onchain/idl/robinverse.json src/lib/chain/robinverse.json",
+    "verify:chain": "node scripts/verify-instructions.mjs && node scripts/verify-account-shape.mjs",
+    "format": "prettier --write ../web/src ../web/scripts ../server/src ../onchain/scripts",
+    "format:check": "prettier --check ../web/src ../web/scripts ../server/src ../onchain/scripts"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "0.32.1",
+    "@magicblock-labs/ephemeral-rollups-sdk": "0.16.2",
     "@number-flow/react": "^0.6.2",
+    "@solana/web3.js": "1.98.4",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -21,6 +29,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "prettier": "^3.9.6",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

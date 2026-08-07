@@ -19,7 +19,6 @@ export interface ChatMessage {
   at: number;
 }
 
-/** Keep the room payload small — chat is a rolling window, not history. */
 export const CHAT_LIMIT = 60;
 export const CHAT_MAX_LENGTH = 240;
 
@@ -30,7 +29,6 @@ export interface RoomState {
   maxPlayers: number;
   isPrivate: boolean;
   members: RoomMemberState[];
-  /** memberId -> seat (1..n) after start */
   seats: Record<string, number>;
   game: GameState | null;
   messages: ChatMessage[];

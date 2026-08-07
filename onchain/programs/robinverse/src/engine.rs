@@ -1,9 +1,3 @@
-//! Pure game rules, ported from `server/src/engine/engine.ts`.
-//!
-//! Nothing in this module touches Anchor accounts, the clock, or syscalls, so
-//! the whole rule set is exercisable with plain `cargo test` on the host. The
-//! instruction layer in `lib.rs` handles authorisation and then calls in here.
-
 use crate::board::{
     tile, TileKind, BOARD_SIZE, GO_SALARY, GO_TO_JAIL_INDEX, JAIL_FINE, JAIL_INDEX, TOTAL_HOTELS,
     TOTAL_HOUSES,
@@ -13,9 +7,6 @@ use crate::state::{
     FORTUNE_COUNT, SEATS, TREASURY_COUNT, TURN_LIMIT_SECONDS,
 };
 
-/// The dataset ships two fortune cards naming tiles that do not exist on the
-/// Meridia board ("Grand Promenade", "Pacifica"). They are the Boardwalk and
-/// Illinois Avenue slots of the classic board, so they resolve by position.
 pub const GRAND_PROMENADE: u8 = 39;
 pub const PACIFICA: u8 = 24;
 pub const CENTRAL_STATION: u8 = 5;
@@ -23,8 +14,6 @@ pub const CENTRAL_STATION: u8 = 5;
 pub const GROUP_TRANSPORT: u8 = 1;
 pub const GROUP_UTILITY: u8 = 2;
 
-/// What happened when a player came to rest on a square. The instruction layer
-/// turns this into an event so clients can rebuild the game feed.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct LandOutcome {
     pub square: u8,
@@ -36,7 +25,6 @@ pub struct LandOutcome {
     pub went_broke: bool,
 }
 
-/// Outcome of resolving a dice roll, including any chained card or jail effect.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct RollOutcome {
     pub die1: u8,
@@ -47,10 +35,6 @@ pub struct RollOutcome {
     pub land: LandOutcome,
 }
 
-// ---------------------------------------------------------------------------
-// setup
-// ---------------------------------------------------------------------------
-
 pub fn fresh_squares() -> [SquareState; BOARD_SIZE] {
     [SquareState::empty(); BOARD_SIZE]
 }
@@ -59,8 +43,6 @@ pub fn fresh_players() -> [PlayerState; SEATS] {
     [PlayerState::empty(); SEATS]
 }
 
-/// Deterministic Fisher-Yates driven by VRF bytes. The same randomness always
-/// produces the same shuffle, which is what makes the outcome auditable.
 fn shuffle(deck: &mut [u8], randomness: &[u8; 32], salt: u8) {
     let len = deck.len();
     if len < 2 {
@@ -75,7 +57,6 @@ fn shuffle(deck: &mut [u8], randomness: &[u8; 32], salt: u8) {
     }
 }
 
-/// Applies start-of-game randomness: both decks shuffled and seat order rolled.
 pub fn apply_setup_randomness(game: &mut Game, randomness: &[u8; 32], now: i64) {
     let mut fortune: [u8; FORTUNE_COUNT] = core::array::from_fn(|i| i as u8);
     let mut treasury: [u8; TREASURY_COUNT] = core::array::from_fn(|i| i as u8);
@@ -98,12 +79,10 @@ pub fn apply_setup_randomness(game: &mut Game, randomness: &[u8; 32], now: i64) 
 
     game.vrf_pending = false;
     game.vrf_purpose = VrfPurpose::None;
-    // `begin_turn` pre-increments, so seat 1 moves first.
     game.turn = 0;
     begin_turn(game, now);
 }
 
-/// Advances to the next live seat and resets per-turn state.
 pub fn begin_turn(game: &mut Game, now: i64) {
     let count = game.player_count;
     if count == 0 {
@@ -128,13 +107,6 @@ pub fn begin_turn(game: &mut Game, now: i64) {
     game.turn_deadline = now + TURN_LIMIT_SECONDS;
 }
 
-// ---------------------------------------------------------------------------
-// money
-// ---------------------------------------------------------------------------
-
-/// Debits a seat, recording the creditor when it pushes them into the red.
-/// Mirrors the original: cash is allowed to go negative and the player must
-/// then raise funds or be eliminated. Returns false when the debt is unmet.
 pub fn pay(game: &mut Game, seat: u8, amount: u32, creditor: u8) -> bool {
     let player = &mut game.players[seat as usize];
     player.cash -= amount as i64;
@@ -148,10 +120,6 @@ pub fn pay(game: &mut Game, seat: u8, amount: u32, creditor: u8) -> bool {
 pub fn credit(game: &mut Game, seat: u8, amount: u32) {
     game.players[seat as usize].cash += amount as i64;
 }
-
-// ---------------------------------------------------------------------------
-// ownership helpers
-// ---------------------------------------------------------------------------
 
 pub fn owns_full_group(game: &Game, square: u8) -> bool {
     let spec = tile(square);
@@ -197,8 +165,6 @@ fn rent_for_houses(square: u8, state: &SquareState) -> u32 {
     }
 }
 
-/// `increased_rent` is the "pay double / pay 10x" modifier the fortune cards
-/// apply when they send a player to the nearest hub or utility.
 pub fn calculate_rent(game: &Game, square: u8, die1: u8, die2: u8, increased_rent: bool) -> u32 {
     let state = game.squares[square as usize];
     let spec = tile(square);
@@ -245,10 +211,6 @@ pub fn calculate_rent(game: &Game, square: u8, die1: u8, die2: u8, increased_ren
     }
 }
 
-// ---------------------------------------------------------------------------
-// landing
-// ---------------------------------------------------------------------------
-
 fn queue_for_auction(game: &mut Game, square: u8) -> bool {
     let len = game.auction_queue_len as usize;
     if game.auction_queue[..len].contains(&square) || len >= BOARD_SIZE {
@@ -273,7 +235,29 @@ pub fn go_to_jail(game: &mut Game) {
     game.phase = crate::state::Phase::Rolled;
 }
 
-/// Resolves the square the current player is standing on.
+pub fn pay_jail_fine(game: &mut Game) {
+    let turn = game.turn;
+    pay(game, turn, JAIL_FINE, BANK);
+    let player = &mut game.players[turn as usize];
+    player.in_jail = false;
+    player.jail_rolls = 0;
+}
+
+pub fn use_jail_card(game: &mut Game) -> bool {
+    let turn = game.turn;
+    let player = &mut game.players[turn as usize];
+    if player.treasury_jail_card {
+        player.treasury_jail_card = false;
+    } else if player.fortune_jail_card {
+        player.fortune_jail_card = false;
+    } else {
+        return false;
+    }
+    player.in_jail = false;
+    player.jail_rolls = 0;
+    true
+}
+
 pub fn land(game: &mut Game, increased_rent: bool) -> LandOutcome {
     let turn = game.turn;
     let position = game.players[turn as usize].position;
@@ -326,7 +310,6 @@ pub fn land(game: &mut Game, increased_rent: bool) -> LandOutcome {
     outcome
 }
 
-/// Moves to an absolute square, paying salary when GO is passed.
 fn advance_to(game: &mut Game, destination: u8, increased_rent: bool) -> LandOutcome {
     let turn = game.turn;
     let mut salary = 0;
@@ -364,18 +347,12 @@ fn advance_to_nearest(game: &mut Game, group: u8) -> LandOutcome {
     outcome
 }
 
-// ---------------------------------------------------------------------------
-// dice
-// ---------------------------------------------------------------------------
-
-/// Applies VRF bytes as a pair of dice and resolves the resulting move.
 pub fn apply_dice(game: &mut Game, randomness: &[u8; 32]) -> RollOutcome {
     let die1 = (randomness[0] % 6) + 1;
     let die2 = (randomness[1] % 6) + 1;
     resolve_roll(game, die1, die2)
 }
 
-/// Split out from `apply_dice` so tests can force specific dice.
 pub fn resolve_roll(game: &mut Game, die1: u8, die2: u8) -> RollOutcome {
     game.die1 = die1;
     game.die2 = die2;
@@ -440,11 +417,6 @@ pub fn resolve_roll(game: &mut Game, die1: u8, die2: u8) -> RollOutcome {
     outcome
 }
 
-// ---------------------------------------------------------------------------
-// pending modal resolution
-// ---------------------------------------------------------------------------
-
-/// Acknowledges whatever is blocking the turn and applies its effect.
 pub fn resolve_pending(game: &mut Game) -> LandOutcome {
     let pending = game.pending;
     game.pending = Pending::None;
@@ -475,10 +447,6 @@ pub fn resolve_pending(game: &mut Game) -> LandOutcome {
         Pending::None => LandOutcome::default(),
     }
 }
-
-// ---------------------------------------------------------------------------
-// cards
-// ---------------------------------------------------------------------------
 
 fn draw_fortune(game: &mut Game) {
     let index = game.fortune_deck[game.fortune_index as usize % FORTUNE_COUNT];
@@ -520,7 +488,6 @@ fn street_repairs(game: &mut Game, per_house: u32, per_hotel: u32) -> u32 {
     cost
 }
 
-/// Treasury (Community Chest) effects, indexed to the dataset's card order.
 pub fn apply_treasury_card(game: &mut Game, index: u8) -> LandOutcome {
     let turn = game.turn;
     let mut outcome = LandOutcome::default();
@@ -541,7 +508,6 @@ pub fn apply_treasury_card(game: &mut Game, index: u8) -> LandOutcome {
         6 | 9 | 15 => credit(game, turn, 100),
         7 => credit(game, turn, 20),
         8 => {
-            // Birthday: collect 10 from every other live player.
             let mut total = 0;
             for seat in 1..=game.player_count {
                 if seat == turn || !game.players[seat as usize].active {
@@ -572,7 +538,6 @@ pub fn apply_treasury_card(game: &mut Game, index: u8) -> LandOutcome {
     outcome
 }
 
-/// Fortune (Chance) effects, indexed to the dataset's card order.
 pub fn apply_fortune_card(game: &mut Game, index: u8) -> LandOutcome {
     let turn = game.turn;
     let mut outcome = LandOutcome::default();
@@ -601,7 +566,6 @@ pub fn apply_fortune_card(game: &mut Game, index: u8) -> LandOutcome {
         }
         11 => return advance_to(game, CENTRAL_STATION, false),
         13 => {
-            // Chairperson: pay every other live player 50.
             let mut total = 0;
             for seat in 1..=game.player_count {
                 if seat == turn || !game.players[seat as usize].active {
@@ -622,10 +586,6 @@ pub fn apply_fortune_card(game: &mut Game, index: u8) -> LandOutcome {
     game.phase = crate::state::Phase::Rolled;
     outcome
 }
-
-// ---------------------------------------------------------------------------
-// buying, building, mortgaging
-// ---------------------------------------------------------------------------
 
 fn drop_from_auction_queue(game: &mut Game, square: u8) {
     let len = game.auction_queue_len as usize;
@@ -719,12 +679,10 @@ pub fn build_hotel(game: &mut Game, seat: u8, square: u8) {
     let state = &mut game.squares[square as usize];
     state.houses = 0;
     state.hotel = true;
-    // The four houses go back to the bank when the hotel replaces them.
     game.houses_available += 4;
     game.hotels_available -= 1;
 }
 
-/// A hotel can only be broken back into houses if the bank still has four.
 pub fn can_sell_building(game: &Game, square: u8) -> bool {
     let state = game.squares[square as usize];
     if state.hotel {
@@ -766,7 +724,6 @@ pub fn mortgage(game: &mut Game, seat: u8, square: u8) -> u32 {
     value
 }
 
-/// Lifting a mortgage costs the mortgage value plus the standard 10% interest.
 pub fn unmortgage_cost(square: u8) -> u32 {
     let value = tile(square).mortgage_value;
     value + (value / 10)
@@ -779,11 +736,6 @@ pub fn unmortgage(game: &mut Game, seat: u8, square: u8) -> u32 {
     cost
 }
 
-// ---------------------------------------------------------------------------
-// auctions
-// ---------------------------------------------------------------------------
-
-/// Drains the auction queue; starts the next auction or hands over the turn.
 pub fn end_turn_or_auction(game: &mut Game, now: i64) {
     while game.auction_queue_len > 0 {
         let square = game.auction_queue[0];
@@ -830,8 +782,6 @@ fn finalize_auction(game: &mut Game, now: i64) {
     end_turn_or_auction(game, now);
 }
 
-/// Moves to the next live bidder, closing the auction when it wraps back to
-/// the standing high bidder.
 pub fn advance_auction_bidder(game: &mut Game, now: i64) {
     if game.auction.highest_bidder == BANK {
         game.auction.highest_bidder = game.auction.current_bidder;
@@ -874,10 +824,6 @@ pub fn withdraw_from_auction(game: &mut Game, now: i64) {
     advance_auction_bidder(game, now);
 }
 
-// ---------------------------------------------------------------------------
-// elimination
-// ---------------------------------------------------------------------------
-
 fn transfer_assets(game: &mut Game, from: u8, to: u8) {
     for square in 0..BOARD_SIZE {
         if game.squares[square].owner != from {
@@ -909,7 +855,6 @@ fn transfer_assets(game: &mut Game, from: u8, to: u8) {
     loser.fortune_jail_card = false;
 }
 
-/// Removes a seat from play and settles the game if only one player is left.
 pub fn eliminate(game: &mut Game, seat: u8, now: i64) {
     if !game.players[seat as usize].active {
         return;
@@ -938,7 +883,6 @@ pub fn eliminate(game: &mut Game, seat: u8, now: i64) {
         return;
     }
 
-    // Cancel anything the departing player was blocking.
     game.auction = AuctionState::idle();
     game.trade = TradeState::idle();
     game.pending = Pending::None;
@@ -950,12 +894,6 @@ pub fn eliminate(game: &mut Game, seat: u8, now: i64) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// trades
-// ---------------------------------------------------------------------------
-
-/// A trade is only valid when both sides can cover their cash leg and every
-/// listed square is owned by the side offering it, with nothing built on it.
 pub fn trade_is_valid(game: &Game, trade: &TradeState) -> bool {
     if !trade.active || trade.initiator == BANK || trade.recipient == BANK {
         return false;
@@ -979,7 +917,6 @@ pub fn trade_is_valid(game: &Game, trade: &TradeState) -> bool {
         if state.houses > 0 || state.hotel {
             return false;
         }
-        // Nothing in the group may be built up either, matching the off-chain rule.
         if tile(square as u8)
             .members()
             .any(|i| game.squares[i].houses > 0 || game.squares[i].hotel)
@@ -1020,10 +957,6 @@ pub fn apply_trade(game: &mut Game, trade: &TradeState) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// derived values used by the instruction layer
-// ---------------------------------------------------------------------------
-
 pub fn net_worth(game: &Game, seat: u8) -> i64 {
     let mut total = game.players[seat as usize].cash;
     for square in 0..BOARD_SIZE {
@@ -1046,7 +979,6 @@ pub fn net_worth(game: &Game, seat: u8) -> i64 {
     total
 }
 
-/// Everything a player could raise by selling buildings and mortgaging.
 pub fn liquidation_value(game: &Game, seat: u8) -> i64 {
     let mut total = game.players[seat as usize].cash;
     for square in 0..BOARD_SIZE {
@@ -1068,7 +1000,6 @@ pub fn liquidation_value(game: &Game, seat: u8) -> i64 {
     total
 }
 
-/// A player is bust when they owe more than they could ever raise.
 pub fn is_bankrupt(game: &Game, seat: u8) -> bool {
     game.players[seat as usize].is_broke() && liquidation_value(game, seat) < 0
 }

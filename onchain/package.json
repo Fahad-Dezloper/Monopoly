@@ -1,0 +1,16 @@
+{
+  "name": "robinverse-onchain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "board": "node scripts/gen-board.mjs",
+    "smoke": "node scripts/smoke-devnet.mjs",
+    "freshness": "node scripts/check-er-freshness.mjs",
+    "join": "node scripts/join-room.mjs"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "0.32.1",
+    "@solana/web3.js": "1.98.4"
+  }
+}

@@ -36,9 +36,7 @@ export function ChatFeed({
             key={message.id}
             className={cx(
               "flex max-w-[92%] flex-col gap-0.5 rounded-[9px] px-2 py-1.5 text-[12px]",
-              mine
-                ? "self-end bg-accent/22"
-                : "self-start bg-surface-2",
+              mine ? "self-end bg-accent/22" : "self-start bg-surface-2",
             )}
           >
             <span

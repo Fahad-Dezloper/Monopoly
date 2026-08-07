@@ -86,7 +86,12 @@ export function createMockRoom(): PublicRoom {
     maxPlayers: 6,
     isPrivate: true,
     members: MOCK_MEMBERS,
-    seats: { "mock-emma": 1, "mock-liam": 2, [MOCK_PLAYER_ID]: 3, "mock-noah": 4 },
+    seats: {
+      "mock-emma": 1,
+      "mock-liam": 2,
+      [MOCK_PLAYER_ID]: 3,
+      "mock-noah": 4,
+    },
     game: createMockGameState(),
     messages: MOCK_MESSAGES,
     version: 12,

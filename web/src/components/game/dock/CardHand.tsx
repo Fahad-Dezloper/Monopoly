@@ -46,7 +46,10 @@ export function CardHand({ cards, canUse, act }: CardHandProps) {
             style={{ background: face.tint }}
           >
             <div className="flex items-start justify-between">
-              <span className="text-[22px] leading-none font-extrabold" aria-hidden>
+              <span
+                className="text-[22px] leading-none font-extrabold"
+                aria-hidden
+              >
                 {face.glyph}
               </span>
               <span className="rounded-xs bg-ink/15 px-1 py-px text-[8.5px] font-bold tracking-wider uppercase">
@@ -71,7 +74,9 @@ export function CardHand({ cards, canUse, act }: CardHandProps) {
                   ? "bg-ink text-white hover:bg-ink/85"
                   : "cursor-not-allowed bg-ink/12 text-ink/45",
               )}
-              title={canUse ? "Play this card now" : "Only usable while in jail"}
+              title={
+                canUse ? "Play this card now" : "Only usable while in jail"
+              }
             >
               {canUse ? "Use now" : "In jail only"}
             </button>

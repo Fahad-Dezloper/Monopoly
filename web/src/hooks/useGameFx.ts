@@ -67,8 +67,12 @@ export function useGameFx(state: GameState | null | undefined) {
   const moveLock = useRef(new Set<number>());
   const flashId = useRef(0);
 
-  const [moneyFlashes, setMoneyFlashes] = useState<Record<number, MoneyFlash>>({});
-  const [displayPositions, setDisplayPositions] = useState<Record<number, number>>({});
+  const [moneyFlashes, setMoneyFlashes] = useState<Record<number, MoneyFlash>>(
+    {},
+  );
+  const [displayPositions, setDisplayPositions] = useState<
+    Record<number, number>
+  >({});
   const [hopping, setHopping] = useState<Record<number, number>>({});
 
   useEffect(() => {
@@ -95,14 +99,19 @@ export function useGameFx(state: GameState | null | undefined) {
       !!next.diceKey && next.diceKey !== prev.diceKey && state.diceRolled;
 
     if (diceJustRolled) playSfx("roll");
-    if (state.turn !== prev.turn && state.phase !== "game_over") playSfx("turn");
+    if (state.turn !== prev.turn && state.phase !== "game_over")
+      playSfx("turn");
 
     for (const player of state.players) {
       if (player.index <= 0) continue;
       const before = prev.money[player.index];
       const after = next.money[player.index];
 
-      if (before == null || !Number.isFinite(before) || !Number.isFinite(after)) {
+      if (
+        before == null ||
+        !Number.isFinite(before) ||
+        !Number.isFinite(after)
+      ) {
         if (Number.isFinite(before) && !Number.isFinite(after)) {
           playSfx("eliminate");
         }
@@ -114,7 +123,10 @@ export function useGameFx(state: GameState | null | undefined) {
 
       flashId.current += 1;
       const id = flashId.current;
-      setMoneyFlashes((flashes) => ({ ...flashes, [player.index]: { delta, id } }));
+      setMoneyFlashes((flashes) => ({
+        ...flashes,
+        [player.index]: { delta, id },
+      }));
       window.setTimeout(() => {
         setMoneyFlashes((flashes) => {
           if (flashes[player.index]?.id !== id) return flashes;
@@ -149,11 +161,17 @@ export function useGameFx(state: GameState | null | undefined) {
       moveLock.current.add(player.index);
 
       void (async () => {
-        setDisplayPositions((positions) => ({ ...positions, [player.index]: from }));
+        setDisplayPositions((positions) => ({
+          ...positions,
+          [player.index]: from,
+        }));
         await sleep(waitForDice ? DICE_ROLL_MS + 80 : 60);
 
         for (const step of steps) {
-          setDisplayPositions((positions) => ({ ...positions, [player.index]: step }));
+          setDisplayPositions((positions) => ({
+            ...positions,
+            [player.index]: step,
+          }));
           setHopping((hops) => ({
             ...hops,
             [player.index]: (hops[player.index] ?? 0) + 1,

@@ -28,11 +28,13 @@ export function AuctionDialog({ state, act, onShowDeed }: AuctionDialogProps) {
 
   const square = state.squares[auction.propertyIndex];
   const bidder = state.players[auction.currentBidder];
-  const leader = auction.highestBidder > 0 ? state.players[auction.highestBidder] : null;
+  const leader =
+    auction.highestBidder > 0 ? state.players[auction.highestBidder] : null;
   const myTurn = !!bidder?.human;
   const me = state.players.find((player) => player.human);
   const inRace = state.players.filter(
-    (player) => player.index > 0 && player.index <= state.playerCount && player.bidding,
+    (player) =>
+      player.index > 0 && player.index <= state.playerCount && player.bidding,
   );
 
   if (minimised) {
@@ -50,7 +52,9 @@ export function AuctionDialog({ state, act, onShowDeed }: AuctionDialogProps) {
           {auction.highestBid > 0 ? money(auction.highestBid) : "no bids"} ·{" "}
           {myTurn ? "your bid" : `${bidder?.name}'s turn`}
         </span>
-        <span className="text-[11px] font-bold text-accent uppercase">Open</span>
+        <span className="text-[11px] font-bold text-accent uppercase">
+          Open
+        </span>
       </button>
     );
   }

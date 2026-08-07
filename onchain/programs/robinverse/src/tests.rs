@@ -1,6 +1,3 @@
-//! Rule-set tests. These run on the host with plain `cargo test` — no
-//! validator, no ER, no oracle — because `engine.rs` is free of syscalls.
-
 use anchor_lang::prelude::Pubkey;
 
 use crate::board::{tile, BOARD_SIZE, GO_SALARY, JAIL_INDEX, TOTAL_HOTELS, TOTAL_HOUSES};
@@ -9,7 +6,6 @@ use crate::state::*;
 
 const NOW: i64 = 1_700_000_000;
 
-/// A started game with `count` seats, all holding $1500 on GO.
 fn game_with(count: u8) -> Game {
     let mut game = Game {
         code: *b"ABC123",
@@ -52,7 +48,6 @@ fn game_with(count: u8) -> Game {
     game
 }
 
-/// Indices of the cheapest full colour group (Mumbai / Delhi, group 3).
 fn india() -> Vec<u8> {
     (0..BOARD_SIZE as u8)
         .filter(|i| tile(*i).group == 3)
@@ -65,25 +60,16 @@ fn give(game: &mut Game, seat: u8, squares: &[u8]) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// account layout
-// ---------------------------------------------------------------------------
-
 #[test]
 fn the_whole_game_fits_in_one_modest_account() {
     use anchor_lang::Space;
     let size = 8 + Game::INIT_SPACE;
-    // One account keeps delegation and ER routing simple; keep it that way.
     assert!(
         size < 4096,
         "game account grew to {size} bytes — check it still suits a single delegation"
     );
     println!("Game account: {size} bytes");
 }
-
-// ---------------------------------------------------------------------------
-// board data
-// ---------------------------------------------------------------------------
 
 #[test]
 fn board_has_forty_tiles_with_consistent_indices() {
@@ -115,15 +101,15 @@ fn colour_groups_are_closed_under_membership() {
 
 #[test]
 fn transport_and_utility_counts_match_the_dataset() {
-    let transport = (0..BOARD_SIZE as u8).filter(|i| tile(*i).group == 1).count();
-    let utility = (0..BOARD_SIZE as u8).filter(|i| tile(*i).group == 2).count();
+    let transport = (0..BOARD_SIZE as u8)
+        .filter(|i| tile(*i).group == 1)
+        .count();
+    let utility = (0..BOARD_SIZE as u8)
+        .filter(|i| tile(*i).group == 2)
+        .count();
     assert_eq!(transport, 4);
     assert_eq!(utility, 2);
 }
-
-// ---------------------------------------------------------------------------
-// rent
-// ---------------------------------------------------------------------------
 
 #[test]
 fn unowned_and_mortgaged_squares_charge_nothing() {
@@ -179,7 +165,9 @@ fn house_and_hotel_rent_climb_through_the_table() {
 #[test]
 fn transport_rent_scales_with_hubs_owned() {
     let mut game = game_with(2);
-    let hubs: Vec<u8> = (0..BOARD_SIZE as u8).filter(|i| tile(*i).group == 1).collect();
+    let hubs: Vec<u8> = (0..BOARD_SIZE as u8)
+        .filter(|i| tile(*i).group == 1)
+        .collect();
     let spec = tile(hubs[0]);
 
     for owned in 1..=hubs.len() {
@@ -195,7 +183,9 @@ fn transport_rent_scales_with_hubs_owned() {
 #[test]
 fn transport_rent_doubles_on_the_fortune_card() {
     let mut game = game_with(2);
-    let hubs: Vec<u8> = (0..BOARD_SIZE as u8).filter(|i| tile(*i).group == 1).collect();
+    let hubs: Vec<u8> = (0..BOARD_SIZE as u8)
+        .filter(|i| tile(*i).group == 1)
+        .collect();
     give(&mut game, 2, &hubs[..1]);
     let normal = calculate_rent(&game, hubs[0], 0, 0, false);
     let boosted = calculate_rent(&game, hubs[0], 0, 0, true);
@@ -205,7 +195,9 @@ fn transport_rent_doubles_on_the_fortune_card() {
 #[test]
 fn utility_rent_multiplies_the_dice() {
     let mut game = game_with(2);
-    let utilities: Vec<u8> = (0..BOARD_SIZE as u8).filter(|i| tile(*i).group == 2).collect();
+    let utilities: Vec<u8> = (0..BOARD_SIZE as u8)
+        .filter(|i| tile(*i).group == 2)
+        .collect();
 
     give(&mut game, 2, &utilities[..1]);
     assert_eq!(calculate_rent(&game, utilities[0], 3, 4, false), 7 * 4);
@@ -213,10 +205,6 @@ fn utility_rent_multiplies_the_dice() {
     give(&mut game, 2, &utilities);
     assert_eq!(calculate_rent(&game, utilities[0], 3, 4, false), 7 * 10);
 }
-
-// ---------------------------------------------------------------------------
-// movement, GO and jail
-// ---------------------------------------------------------------------------
 
 #[test]
 fn passing_go_pays_a_salary() {
@@ -303,6 +291,60 @@ fn a_third_failed_jail_roll_forces_the_fine() {
 }
 
 #[test]
+fn paying_the_fine_early_frees_you_to_roll_normally() {
+    let mut game = game_with(2);
+    game.players[1].in_jail = true;
+    game.players[1].jail_rolls = 2;
+    game.players[1].position = JAIL_INDEX;
+    let before = game.players[1].cash;
+
+    pay_jail_fine(&mut game);
+
+    assert!(!game.players[1].in_jail);
+    assert_eq!(game.players[1].jail_rolls, 0);
+    assert_eq!(game.players[1].cash, before - 50);
+
+    resolve_roll(&mut game, 1, 2);
+    assert_eq!(game.players[1].position, JAIL_INDEX + 3);
+}
+
+#[test]
+fn a_jail_card_gets_you_out_without_paying() {
+    let mut game = game_with(2);
+    game.players[1].in_jail = true;
+    game.players[1].jail_rolls = 1;
+    game.players[1].treasury_jail_card = true;
+    let before = game.players[1].cash;
+
+    assert!(use_jail_card(&mut game));
+    assert!(!game.players[1].in_jail);
+    assert_eq!(game.players[1].jail_rolls, 0);
+    assert_eq!(game.players[1].cash, before);
+    assert!(!game.players[1].treasury_jail_card);
+}
+
+#[test]
+fn the_treasury_jail_card_is_spent_before_the_fortune_one() {
+    let mut game = game_with(2);
+    game.players[1].in_jail = true;
+    game.players[1].treasury_jail_card = true;
+    game.players[1].fortune_jail_card = true;
+
+    assert!(use_jail_card(&mut game));
+    assert!(!game.players[1].treasury_jail_card);
+    assert!(game.players[1].fortune_jail_card);
+}
+
+#[test]
+fn you_cannot_use_a_jail_card_you_do_not_hold() {
+    let mut game = game_with(2);
+    game.players[1].in_jail = true;
+
+    assert!(!use_jail_card(&mut game));
+    assert!(game.players[1].in_jail);
+}
+
+#[test]
 fn a_player_in_jail_does_not_move_on_a_failed_roll() {
     let mut game = game_with(2);
     game.players[1].in_jail = true;
@@ -310,10 +352,6 @@ fn a_player_in_jail_does_not_move_on_a_failed_roll() {
     resolve_roll(&mut game, 1, 2);
     assert_eq!(game.players[1].position, JAIL_INDEX);
 }
-
-// ---------------------------------------------------------------------------
-// buying and the auction queue
-// ---------------------------------------------------------------------------
 
 #[test]
 fn landing_on_an_unowned_property_queues_it_for_auction() {
@@ -389,10 +427,6 @@ fn tax_squares_charge_the_listed_amount() {
     assert_eq!(game.players[1].cash, before - amount as i64);
 }
 
-// ---------------------------------------------------------------------------
-// building
-// ---------------------------------------------------------------------------
-
 #[test]
 fn building_requires_the_whole_colour_group() {
     let mut game = game_with(2);
@@ -411,7 +445,6 @@ fn houses_must_be_built_evenly() {
     give(&mut game, 1, &group);
 
     build_house(&mut game, 1, group[0]);
-    // The first square is now ahead of its neighbour, so it must wait.
     assert!(!can_build_house(&game, 1, group[0]));
     assert!(can_build_house(&game, 1, group[1]));
 
@@ -520,10 +553,6 @@ fn selling_a_house_refunds_half_price() {
     assert_eq!(game.squares[group[0] as usize].houses, 0);
 }
 
-// ---------------------------------------------------------------------------
-// mortgages
-// ---------------------------------------------------------------------------
-
 #[test]
 fn mortgaging_pays_out_and_lifting_costs_ten_percent_more() {
     let mut game = game_with(2);
@@ -541,10 +570,6 @@ fn mortgaging_pays_out_and_lifting_costs_ten_percent_more() {
     assert!(!game.squares[square as usize].mortgaged);
     assert_eq!(game.players[1].cash, cash_before - (value / 10) as i64);
 }
-
-// ---------------------------------------------------------------------------
-// cards
-// ---------------------------------------------------------------------------
 
 #[test]
 fn fortune_card_zero_advances_to_go() {
@@ -658,7 +683,6 @@ fn street_repairs_charge_per_building() {
     let before = game.players[1].cash;
     apply_treasury_card(&mut game, 13);
 
-    // Treasury card 13 is 40 per house, 115 per hotel.
     assert_eq!(game.players[1].cash, before - (3 * 40 + 115));
 }
 
@@ -675,10 +699,6 @@ fn every_card_index_is_handled_without_panicking() {
     }
 }
 
-// ---------------------------------------------------------------------------
-// auctions
-// ---------------------------------------------------------------------------
-
 fn open_auction(game: &mut Game, square: u8) {
     game.auction_queue[0] = square;
     game.auction_queue_len = 1;
@@ -693,7 +713,6 @@ fn an_unbought_square_opens_an_auction_at_end_of_turn() {
 
     assert!(game.auction.active);
     assert_eq!(game.phase, Phase::Auction);
-    // Bidding opens to the left of the player whose turn it was.
     assert_eq!(game.auction.current_bidder, 2);
 }
 
@@ -737,7 +756,6 @@ fn a_bid_passes_the_chance_to_respond_to_the_other_player() {
 
     place_bid(&mut game, 100, NOW);
 
-    // The opponent still gets a chance to outbid before it closes.
     assert!(game.auction.active);
     assert_eq!(game.auction.highest_bidder, 2);
     assert_eq!(game.auction.current_bidder, 1);
@@ -761,7 +779,6 @@ fn bidding_wraps_back_to_the_leader_and_closes() {
     place_bid(&mut game, 90, NOW);
     assert_eq!(game.auction.current_bidder, 1);
 
-    // Everyone still in keeps getting a chance until it wraps to the leader.
     withdraw_from_auction(&mut game, NOW);
     assert_eq!(game.auction.current_bidder, 2);
     assert!(game.auction.active);
@@ -781,10 +798,6 @@ fn the_turn_moves_on_once_the_auction_queue_is_empty() {
     assert_eq!(game.turn, 2);
     assert_eq!(game.phase, Phase::TurnStart);
 }
-
-// ---------------------------------------------------------------------------
-// trades
-// ---------------------------------------------------------------------------
 
 fn draft(initiator: u8, recipient: u8) -> TradeState {
     TradeState {
@@ -852,10 +865,6 @@ fn a_trade_you_cannot_fund_is_rejected() {
     assert!(!trade_is_valid(&game, &trade));
 }
 
-// ---------------------------------------------------------------------------
-// elimination and settlement
-// ---------------------------------------------------------------------------
-
 #[test]
 fn a_creditor_inherits_the_bankrupt_players_estate() {
     let mut game = game_with(3);
@@ -871,7 +880,6 @@ fn a_creditor_inherits_the_bankrupt_players_estate() {
     for square in &group {
         assert_eq!(game.squares[*square as usize].owner, 2);
     }
-    // Nothing to hand over from a negative balance.
     assert_eq!(game.players[2].cash, creditor_before);
 }
 
@@ -931,7 +939,6 @@ fn a_player_is_only_bankrupt_when_they_cannot_raise_the_money() {
     give(&mut game, 1, &group);
     game.players[1].cash = -10;
 
-    // Mortgaging the group would cover a $10 debt.
     assert!(!is_bankrupt(&game, 1));
 
     game.players[1].cash = -100_000;
@@ -951,10 +958,6 @@ fn net_worth_counts_cash_deeds_and_buildings() {
 
     assert_eq!(net_worth(&game, 1), expected);
 }
-
-// ---------------------------------------------------------------------------
-// randomness
-// ---------------------------------------------------------------------------
 
 #[test]
 fn dice_always_land_between_one_and_six() {
@@ -1025,10 +1028,6 @@ fn setup_leaves_the_first_seat_ready_to_roll() {
     assert_eq!(game.turn_deadline, NOW + TURN_LIMIT_SECONDS);
 }
 
-// ---------------------------------------------------------------------------
-// full game shape
-// ---------------------------------------------------------------------------
-
 #[test]
 fn a_long_random_game_never_corrupts_its_own_state() {
     let mut game = game_with(4);
@@ -1069,7 +1068,6 @@ fn a_long_random_game_never_corrupts_its_own_state() {
 
         end_turn_or_auction(&mut game, NOW);
 
-        // Invariants that must hold after every single turn.
         assert!(game.turn >= 1 && game.turn <= game.player_count);
         assert!(game.houses_available <= TOTAL_HOUSES);
         assert!(game.hotels_available <= TOTAL_HOTELS);
@@ -1080,5 +1078,27 @@ fn a_long_random_game_never_corrupts_its_own_state() {
             assert!(game.squares[square].owner <= game.player_count);
             assert!(game.squares[square].houses <= 4);
         }
+    }
+}
+
+/// The oracle builds the callback as `discriminator || randomness || args`, so
+/// `callback_args` must encode the trailing parameters exactly. An extra byte
+/// silently shifts the nonce and every callback is rejected with
+/// `RandomnessMismatch` — which is what happened on devnet the first time.
+#[test]
+fn callback_args_decode_to_the_nonce_the_callback_declares() {
+    use anchor_lang::AnchorDeserialize;
+
+    for nonce in [0u64, 1, 42, 0x0102_0304_0506_0708, u64::MAX] {
+        let args = crate::callback_args(nonce);
+        assert_eq!(
+            args.len(),
+            8,
+            "callback_start/callback_roll take one u64 after the randomness"
+        );
+
+        let decoded = u64::deserialize(&mut args.as_slice())
+            .expect("the oracle's trailing bytes must be valid borsh");
+        assert_eq!(decoded, nonce);
     }
 }

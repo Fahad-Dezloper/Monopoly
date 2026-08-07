@@ -2,10 +2,6 @@ import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Redis from "ioredis";
 
-/**
- * Redis-backed key/value with an in-memory fallback for local MVP.
- * Active rooms / game state / socket maps live here.
- */
 @Injectable()
 export class RedisService implements OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
@@ -17,19 +13,25 @@ export class RedisService implements OnModuleDestroy {
     const mode = this.config.get<string>("REDIS_MODE") ?? "memory";
     if (mode === "redis") {
       try {
-        const url = this.config.get<string>("REDIS_URL") ?? "redis://localhost:6379";
+        const url =
+          this.config.get<string>("REDIS_URL") ?? "redis://localhost:6379";
         this.client = new Redis(url, {
           maxRetriesPerRequest: 1,
           lazyConnect: true,
         });
-        this.client.connect().then(() => {
-          this.mode = "redis";
-          this.logger.log("Redis connected");
-        }).catch((err) => {
-          this.logger.warn(`Redis connect failed — using memory (${String(err)})`);
-          this.client = null;
-          this.mode = "memory";
-        });
+        this.client
+          .connect()
+          .then(() => {
+            this.mode = "redis";
+            this.logger.log("Redis connected");
+          })
+          .catch((err) => {
+            this.logger.warn(
+              `Redis connect failed — using memory (${String(err)})`,
+            );
+            this.client = null;
+            this.mode = "memory";
+          });
       } catch (err) {
         this.logger.warn(`Redis init failed — using memory (${String(err)})`);
         this.mode = "memory";
@@ -78,7 +80,11 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 
-  async setJson(key: string, value: unknown, ttlSeconds?: number): Promise<void> {
+  async setJson(
+    key: string,
+    value: unknown,
+    ttlSeconds?: number,
+  ): Promise<void> {
     await this.set(key, JSON.stringify(value), ttlSeconds);
   }
 }

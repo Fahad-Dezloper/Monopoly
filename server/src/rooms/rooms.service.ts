@@ -30,7 +30,8 @@ import {
 function makeCode(): string {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let out = "";
-  for (let i = 0; i < 6; i++) out += alphabet[Math.floor(Math.random() * (alphabet.length))];
+  for (let i = 0; i < 6; i++)
+    out += alphabet[Math.floor(Math.random() * alphabet.length)];
   return out;
 }
 
@@ -75,12 +76,10 @@ export class RoomsService implements OnModuleInit, OnModuleDestroy {
     else this.activePlaying.delete(key);
   }
 
-  /** Apply expired turn skips; returns true if state changed. */
   private applyDeadlineIfNeeded(room: RoomState): boolean {
     if (!room.game || room.status !== "playing") return false;
     if (room.game.phase === "game_over") return false;
 
-    // Migrate older rooms that lack a deadline
     if (!room.game.turnDeadlineAt) {
       room.game = {
         ...room.game,
@@ -177,7 +176,6 @@ export class RoomsService implements OnModuleInit, OnModuleDestroy {
     return this.persist(room);
   }
 
-  /** Room chat — any member may post, seated or not. */
   async postMessage(
     code: string,
     playerId: string,
@@ -215,7 +213,8 @@ export class RoomsService implements OnModuleInit, OnModuleDestroy {
     return this.enqueue(input.code, async () => {
       const room = await this.redis.getJson<RoomState>(roomKey(input.code));
       if (!room) throw new NotFoundException("room not found");
-      if (room.status !== "lobby") throw new BadRequestException("game already started");
+      if (room.status !== "lobby")
+        throw new BadRequestException("game already started");
 
       const existing = room.members.find((m) => m.id === input.playerId);
       if (existing) return room;
@@ -228,7 +227,8 @@ export class RoomsService implements OnModuleInit, OnModuleDestroy {
       const color =
         input.color && !used.has(input.color)
           ? input.color
-          : (DEFAULT_COLORS.find((c) => !used.has(c)) as PlayerColor) ?? "red";
+          : ((DEFAULT_COLORS.find((c) => !used.has(c)) as PlayerColor) ??
+            "red");
 
       room.members.push({
         id: input.playerId,
@@ -263,7 +263,11 @@ export class RoomsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async setReady(code: string, playerId: string, ready: boolean): Promise<RoomState> {
+  async setReady(
+    code: string,
+    playerId: string,
+    ready: boolean,
+  ): Promise<RoomState> {
     return this.enqueue(code, async () => {
       const room = await this.requireLobbyUnlocked(code);
       const member = room.members.find((m) => m.id === playerId);
@@ -273,11 +277,16 @@ export class RoomsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async kick(code: string, hostId: string, targetId: string): Promise<RoomState> {
+  async kick(
+    code: string,
+    hostId: string,
+    targetId: string,
+  ): Promise<RoomState> {
     return this.enqueue(code, async () => {
       const room = await this.requireLobbyUnlocked(code);
       if (room.hostId !== hostId) throw new ForbiddenException("host only");
-      if (targetId === hostId) throw new BadRequestException("cannot kick host");
+      if (targetId === hostId)
+        throw new BadRequestException("cannot kick host");
       room.members = room.members.filter((m) => m.id !== targetId);
       return this.persist(room);
     });
@@ -287,7 +296,8 @@ export class RoomsService implements OnModuleInit, OnModuleDestroy {
     return this.enqueue(code, async () => {
       const room = await this.requireLobbyUnlocked(code);
       if (room.hostId !== hostId) throw new ForbiddenException("host only");
-      if (room.members.length < 2) throw new BadRequestException("need at least 2 players");
+      if (room.members.length < 2)
+        throw new BadRequestException("need at least 2 players");
 
       for (const m of room.members) m.ready = true;
 
@@ -324,7 +334,8 @@ export class RoomsService implements OnModuleInit, OnModuleDestroy {
     return this.enqueue(code, async () => {
       const room = await this.redis.getJson<RoomState>(roomKey(code));
       if (!room || !room.game) throw new NotFoundException("game not found");
-      if (room.status !== "playing") throw new BadRequestException("not playing");
+      if (room.status !== "playing")
+        throw new BadRequestException("not playing");
 
       this.applyDeadlineIfNeeded(room);
 
@@ -333,7 +344,6 @@ export class RoomsService implements OnModuleInit, OnModuleDestroy {
         return this.persist(room);
       }
 
-      // System-only action
       if (action.type === "SKIP_TURN") {
         room.game = gameReducer(room.game, action);
         if (room.game.phase === "game_over") room.status = "finished";

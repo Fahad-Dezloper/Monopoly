@@ -1,0 +1,121 @@
+.die3d {
+  --die-size: clamp(80px, 7.5cqi, 56px);
+  width: var(--die-size);
+  height: var(--die-size);
+  perspective: 500px;
+  flex-shrink: 0;
+}
+.die3d-cube {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.9s cubic-bezier(0.2, 0.75, 0.2, 1);
+  transition-delay: var(--delay, 0ms);
+}
+.die3d-rolling .die3d-cube {
+  transition-duration: 1.05s;
+  animation: die3d-toss 1.05s cubic-bezier(0.22, 0.8, 0.25, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+.die3d-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #f7f4ec;
+  border: 1.5px solid #2a2a2a;
+  border-radius: 6px;
+  backface-visibility: hidden;
+}
+.die3d-pips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 72%;
+  height: 72%;
+  gap: 2px;
+}
+.die3d-pip {
+  border-radius: 50%;
+  background: transparent;
+}
+.die3d-pip.on {
+  background: #1a1a1a;
+}
+.die3d-f1 {
+  transform: rotateY(0deg) translateZ(calc(var(--die-size) / 2));
+}
+.die3d-f2 {
+  transform: rotateY(90deg) translateZ(calc(var(--die-size) / 2));
+}
+.die3d-f3 {
+  transform: rotateX(90deg) translateZ(calc(var(--die-size) / 2));
+}
+.die3d-f4 {
+  transform: rotateX(-90deg) translateZ(calc(var(--die-size) / 2));
+}
+.die3d-f5 {
+  transform: rotateY(-90deg) translateZ(calc(var(--die-size) / 2));
+}
+.die3d-f6 {
+  transform: rotateY(180deg) translateZ(calc(var(--die-size) / 2));
+}
+@keyframes die3d-toss {
+  0% {
+    translate: 0 0;
+  }
+  30% {
+    translate: 0 -12px;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+
+.build-marker {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  line-height: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.build-houses {
+  gap: 2px;
+}
+.build-compact.build-houses {
+  gap: 1px;
+}
+.build-piece {
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.28));
+  user-select: none;
+  pointer-events: none;
+}
+.build-piece-house {
+  width: clamp(10px, 2cqi, 14px);
+  height: clamp(9px, 1.8cqi, 12px);
+}
+.build-piece-hotel {
+  width: clamp(12px, 2.2cqi, 16px);
+  height: clamp(13px, 2.5cqi, 18px);
+}
+.build-piece.is-compact.build-piece-house {
+  width: clamp(9px, 1.7cqi, 12px);
+  height: clamp(8px, 1.5cqi, 11px);
+}
+.build-piece.is-compact.build-piece-hotel {
+  width: clamp(11px, 2cqi, 14px);
+  height: clamp(12px, 2.2cqi, 16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .die3d-cube {
+    animation: none !important;
+    transition: none !important;
+  }
+}

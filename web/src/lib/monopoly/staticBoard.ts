@@ -1,4 +1,4 @@
-import boardData from "@/lib/mock/boardData.json";
+import boardData from "@/lib/monopoly/boardData.json";
 import type { Square } from "@/lib/monopoly/types";
 
 const GROUP_COLORS: Record<string, string> = {
@@ -49,7 +49,8 @@ function shortLabel(name: string): string {
   if (cleaned.length <= 10) return cleaned.toLowerCase();
   const parts = cleaned.split(/\s+/);
   if (parts.length === 1) return cleaned.slice(0, 9).toLowerCase();
-  if (parts[0].length <= 3) return `${parts[0]} ${parts[1]}`.toLowerCase().slice(0, 10);
+  if (parts[0].length <= 3)
+    return `${parts[0]} ${parts[1]}`.toLowerCase().slice(0, 10);
   return parts[0].toLowerCase().slice(0, 10);
 }
 
@@ -83,7 +84,7 @@ function blankSquare(index: number, name: string): Square {
   };
 }
 
-export function createMockBoard(): Square[] {
+export function createStaticBoard(): Square[] {
   const meta = boardData.meta;
   const squares: Square[] = Array.from({ length: 40 }, (_, index) =>
     blankSquare(index, `Tile ${index}`),

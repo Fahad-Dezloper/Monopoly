@@ -1,4 +1,4 @@
-import { BOARD_META, createMockBoard } from "@/lib/mock/board";
+import { BOARD_META, createStaticBoard } from "@/lib/monopoly/staticBoard";
 import type { GameState, Player, PlayerColor } from "@/lib/monopoly/types";
 
 const TURN_LIMIT_MS = 3 * 60 * 1000;
@@ -46,7 +46,7 @@ function seat(
 function baseState(): GameState {
   return {
     phase: "turn_start",
-    squares: createMockBoard(),
+    squares: createStaticBoard(),
     players: [bankSeat()],
     playerCount: 0,
     turn: 0,
@@ -96,7 +96,12 @@ export function createMockGameState(): GameState {
       communityChestJailCard: true,
       chanceJailCard: true,
     }),
-    seat(4, "Noah", "orange", { position: 10, money: 610, jail: true, jailroll: 1 }),
+    seat(4, "Noah", "orange", {
+      position: 10,
+      money: 610,
+      jail: true,
+      jailroll: 1,
+    }),
   ];
   state.playerCount = 4;
   state.turn = MOCK_SEAT;
@@ -109,7 +114,13 @@ export function createMockGameState(): GameState {
   state.turnDeadlineAt = Date.now() + TURN_LIMIT_MS - 66_000;
   state.landedMessage = "You landed on Shanghai.";
 
-  const own = (index: number, owner: number, house = 0, hotel = 0, mortgage = false) => {
+  const own = (
+    index: number,
+    owner: number,
+    house = 0,
+    hotel = 0,
+    mortgage = false,
+  ) => {
     const square = state.squares[index];
     square.owner = owner;
     square.house = hotel === 1 ? 5 : house;

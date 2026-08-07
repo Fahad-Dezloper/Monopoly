@@ -84,4 +84,8 @@ pub enum GameError {
     BadSeat,
     #[msg("Player name is too long")]
     NameTooLong,
+    #[msg("You are not in jail")]
+    NotInJail,
+    #[msg("You do not hold a Get Out of Jail Free card")]
+    NoJailCard,
 }

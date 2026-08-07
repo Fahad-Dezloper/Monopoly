@@ -35,7 +35,8 @@ export function DeedStrip({ state, deeds, onSelectSquare }: DeedStripProps) {
     <div className="scrollless flex h-full gap-2 overflow-x-auto pb-0.5">
       {sorted.map((square) => {
         const progress = groupProgress(state, square);
-        const complete = progress.total > 0 && progress.owned === progress.total;
+        const complete =
+          progress.total > 0 && progress.owned === progress.total;
         const houses = square.hotel === 1 ? 0 : square.house;
 
         return (

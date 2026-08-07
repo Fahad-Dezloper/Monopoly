@@ -19,21 +19,7 @@ export function BoardCenter({
   currentPlayer,
 }: BoardCenterProps) {
   return (
-    <div
-      className="relative flex size-full flex-col items-center justify-center gap-[3cqi] overflow-hidden"
-    >
-
-      {/* <div className="relative -rotate-[8deg]" aria-hidden>
-        <span className="block rounded-[0.6cqi] border-[0.35cqi] border-[#d9b45a] bg-[#c8102e] px-[4cqi] py-[1.4cqi] shadow-[0_1cqi_2cqi_rgba(0,0,0,0.5)]">
-          <span className="block font-display text-[5.4cqi] leading-none tracking-[0.04em] text-white">
-            ROBINVERSE
-          </span>
-        </span>
-        <span className="mt-[1cqi] block text-center text-[1.3cqi] font-bold tracking-[0.4em] text-[#d9b45a] uppercase">
-          Property Trading Game
-        </span>
-      </div> */}
-
+    <div className="relative flex size-full flex-col items-center justify-center gap-[3cqi] overflow-hidden">
       <div className="flex items-center gap-[2cqi]">
         <DiceCubes
           die1={die1}

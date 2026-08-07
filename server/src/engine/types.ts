@@ -19,9 +19,7 @@ export type PlayerColor =
 export interface Square {
   index: number;
   name: string;
-  /** Short label shown on the board tile. */
   shortName?: string;
-  /** ISO 3166-1 alpha-2 country code for flag image, if any. */
   flagCode?: string;
   pricetext: string;
   color: string;
@@ -32,7 +30,6 @@ export interface Square {
   groupNumber: number;
   price: number;
   baserent: number;
-  /** Rent when full color set is owned and no houses are built. */
   monopolyrent: number;
   rent1: number;
   rent2: number;
@@ -41,11 +38,8 @@ export interface Square {
   rent5: number;
   houseprice: number;
   hotelprice: number;
-  /** Listed mortgage cash from board dataset. */
   mortgageValue: number;
-  /** Tax tile amount (0 for non-tax). */
   taxAmount: number;
-  /** Raw tile type from monopoly_board_game.json */
   tileType?: string;
   landcount: number;
   group: number[];
@@ -101,7 +95,7 @@ export interface TradeDraft {
   recipient: number;
   leftMoney: number;
   rightMoney: number;
-  properties: number[]; // 1 offered, -1 requested, 0 neither
+  properties: number[];
   communityChestJailCard: number;
   chanceJailCard: number;
   awaitingResponse: boolean;
@@ -142,6 +136,5 @@ export interface GameState {
   winner: number | null;
   housesAvailable: number;
   hotelsAvailable: number;
-  /** Absolute timestamp when the current turn expires (auto-pass). */
   turnDeadlineAt: number;
 }

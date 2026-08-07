@@ -36,7 +36,8 @@ const TILE_KINDS = {
 
 function kindOf(tile) {
   const kind = TILE_KINDS[tile.type];
-  if (!kind) throw new Error(`unmapped tile type "${tile.type}" at id ${tile.id}`);
+  if (!kind)
+    throw new Error(`unmapped tile type "${tile.type}" at id ${tile.id}`);
   return kind;
 }
 
@@ -89,7 +90,10 @@ for (const tile of data.board) {
 const tiles = data.board.map((tile) => {
   const group = GROUP_NUMBERS[tile.group] ?? 0;
   const members = groupMembers.get(group) ?? [];
-  const padded = [...members, ...Array(4 - members.length).fill(255)].slice(0, 4);
+  const padded = [...members, ...Array(4 - members.length).fill(255)].slice(
+    0,
+    4,
+  );
   return {
     index: tile.id,
     name: tile.name,
@@ -106,7 +110,8 @@ const tiles = data.board.map((tile) => {
   };
 });
 
-if (tiles.length !== 40) throw new Error(`expected 40 tiles, got ${tiles.length}`);
+if (tiles.length !== 40)
+  throw new Error(`expected 40 tiles, got ${tiles.length}`);
 
 const rustTiles = tiles
   .map(

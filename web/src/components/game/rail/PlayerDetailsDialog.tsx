@@ -63,7 +63,10 @@ export function PlayerDetailsDialog({
           </div>
 
           <div className="px-3.5 py-2">
-            <Row label="Cash in hand" value={`$ ${holdings.cash.toLocaleString()}`} />
+            <Row
+              label="Cash in hand"
+              value={`$ ${holdings.cash.toLocaleString()}`}
+            />
             <Row
               label="Invested in property"
               value={`$ ${holdings.invested.toLocaleString()}`}

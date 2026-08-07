@@ -2,7 +2,9 @@ import type { GameState, Square } from "@/lib/monopoly/types";
 
 export function ownsFullGroup(state: GameState, square: Square): boolean {
   if (!square.group?.length || square.groupNumber < 3) return false;
-  return square.group.every((index) => state.squares[index].owner === square.owner);
+  return square.group.every(
+    (index) => state.squares[index].owner === square.owner,
+  );
 }
 
 export function groupHasMortgage(state: GameState, square: Square): boolean {
@@ -87,7 +89,8 @@ export function buildHint(
   if (!isMyTurn) return "Build on your turn.";
   if (square.mortgage) return "Unmortgage before building.";
   if (!ownsFullGroup(state, square)) return "Own the full colour set to build.";
-  if (groupHasMortgage(state, square)) return "Unmortgage every deed in the set.";
+  if (groupHasMortgage(state, square))
+    return "Unmortgage every deed in the set.";
   if (square.hotel === 1) return "Hotel complete.";
   if (canUpgrade(state, seat, square)) return null;
 
@@ -95,8 +98,10 @@ export function buildHint(
     ...square.group.map((index) => state.squares[index].house),
   );
   if (square.house > min) return "Build evenly across the set.";
-  if (square.house < 4 && state.housesAvailable <= 0) return "Bank is out of houses.";
-  if (square.house === 4 && state.hotelsAvailable <= 0) return "Bank is out of hotels.";
+  if (square.house < 4 && state.housesAvailable <= 0)
+    return "Bank is out of houses.";
+  if (square.house === 4 && state.hotelsAvailable <= 0)
+    return "Bank is out of hotels.";
   if (state.players[seat].money < upgradeCost(square)) {
     return `Need $${upgradeCost(square)} to upgrade.`;
   }

@@ -53,7 +53,8 @@ export function StatsDialog({ state, act, onShowDeed }: StatsDialogProps) {
               >
                 {player.name}
                 <span className="ml-1.5 font-semibold text-dim">
-                  ${Math.floor(player.money)} · net ${netWorth(state, player.index)}
+                  ${Math.floor(player.money)} · net $
+                  {netWorth(state, player.index)}
                 </span>
               </div>
               {deeds.length === 0 && (

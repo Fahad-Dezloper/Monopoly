@@ -1,9 +1,3 @@
-//! RobinVerse — Monopoly with the whole rule set on chain.
-//!
-//! Base layer: create the game, seat players, delegate the account.
-//! Ephemeral rollup: every turn action, plus VRF dice.
-//! Base layer again: commit and undelegate once somebody wins.
-
 use anchor_lang::prelude::*;
 use ephemeral_rollups_sdk::anchor::{commit, delegate, ephemeral, vrf, vrf_callback};
 use ephemeral_rollups_sdk::cpi::DelegateConfig;
@@ -35,10 +29,6 @@ pub const STARTING_CASH: i64 = 1500;
 #[program]
 pub mod robinverse {
     use super::*;
-
-    // -----------------------------------------------------------------
-    // base layer: lobby
-    // -----------------------------------------------------------------
 
     pub fn create_game(
         ctx: Context<CreateGame>,
@@ -99,23 +89,22 @@ pub mod robinverse {
         Ok(())
     }
 
-    /// Base layer. Hands the game account to the delegation program so every
-    /// subsequent turn runs on the ephemeral rollup.
-    pub fn delegate_game(ctx: Context<DelegateGame>, code: [u8; 6]) -> Result<()> {
+    pub fn delegate_game(
+        ctx: Context<DelegateGame>,
+        code: [u8; 6],
+        validator: Option<Pubkey>,
+    ) -> Result<()> {
         ctx.accounts.delegate_game(
             &ctx.accounts.payer,
             &[GAME_SEED, &code],
-            DelegateConfig::default(),
+            DelegateConfig {
+                validator,
+                ..DelegateConfig::default()
+            },
         )?;
         Ok(())
     }
 
-    // -----------------------------------------------------------------
-    // ephemeral rollup: start
-    // -----------------------------------------------------------------
-
-    /// Requests the randomness that shuffles both decks and rolls seat order.
-    /// The game is not playable until `callback_start` lands.
     pub fn start_game(ctx: Context<RequestRandomness>, client_seed: u8) -> Result<()> {
         let nonce = {
             let game = &mut ctx.accounts.game;
@@ -160,11 +149,6 @@ pub mod robinverse {
         Ok(())
     }
 
-    // -----------------------------------------------------------------
-    // ephemeral rollup: a turn
-    // -----------------------------------------------------------------
-
-    /// Requests dice. The result arrives in `callback_roll`, not here.
     pub fn roll_dice(ctx: Context<RequestRandomness>, client_seed: u8) -> Result<()> {
         let nonce = {
             let payer = ctx.accounts.payer.key();
@@ -226,8 +210,6 @@ pub mod robinverse {
         Ok(())
     }
 
-    /// Acknowledges a blocking modal: go to jail, the compulsory jail fine, or
-    /// a drawn card. Only the player it belongs to may clear it.
     pub fn acknowledge(ctx: Context<PlayerAction>) -> Result<()> {
         let game = &mut ctx.accounts.game;
         require_turn(game, &ctx.accounts.player.key())?;
@@ -241,6 +223,47 @@ pub mod robinverse {
             square: game.current().position,
             rent_paid: outcome.rent_paid,
             tax_paid: outcome.tax_paid,
+        });
+        Ok(())
+    }
+
+    pub fn pay_jail_fine(ctx: Context<PlayerAction>) -> Result<()> {
+        let game = &mut ctx.accounts.game;
+        let seat = require_turn(game, &ctx.accounts.player.key())?;
+        require!(game.pending == Pending::None, GameError::PendingAction);
+        require!(!game.vrf_pending, GameError::RandomnessPending);
+        require!(game.players[seat as usize].in_jail, GameError::NotInJail);
+        require!(!game.dice_rolled, GameError::DiceAlreadyRolled);
+        require!(
+            game.players[seat as usize].cash >= board::JAIL_FINE as i64,
+            GameError::InsufficientFunds
+        );
+
+        engine::pay_jail_fine(game);
+
+        emit!(LeftJail {
+            game: game.key(),
+            seat,
+            paid: board::JAIL_FINE,
+            used_card: false,
+        });
+        Ok(())
+    }
+
+    pub fn use_jail_card(ctx: Context<PlayerAction>) -> Result<()> {
+        let game = &mut ctx.accounts.game;
+        let seat = require_turn(game, &ctx.accounts.player.key())?;
+        require!(game.pending == Pending::None, GameError::PendingAction);
+        require!(!game.vrf_pending, GameError::RandomnessPending);
+        require!(game.players[seat as usize].in_jail, GameError::NotInJail);
+        require!(!game.dice_rolled, GameError::DiceAlreadyRolled);
+        require!(engine::use_jail_card(game), GameError::NoJailCard);
+
+        emit!(LeftJail {
+            game: game.key(),
+            seat,
+            paid: 0,
+            used_card: true,
         });
         Ok(())
     }
@@ -273,7 +296,6 @@ pub mod robinverse {
         Ok(())
     }
 
-    /// Declines the purchase, which sends the square to auction at end of turn.
     pub fn decline_property(ctx: Context<PlayerAction>) -> Result<()> {
         let game = &mut ctx.accounts.game;
         require_turn(game, &ctx.accounts.player.key())?;
@@ -292,7 +314,6 @@ pub mod robinverse {
             GameError::OutstandingDebt
         );
 
-        // Doubles earn another roll rather than ending the turn.
         if can_roll_again(game) {
             game.phase = Phase::TurnStart;
             game.dice_rolled = false;
@@ -308,10 +329,6 @@ pub mod robinverse {
         });
         Ok(())
     }
-
-    // -----------------------------------------------------------------
-    // ephemeral rollup: property management
-    // -----------------------------------------------------------------
 
     pub fn build(ctx: Context<PlayerAction>, square: u8) -> Result<()> {
         let game = &mut ctx.accounts.game;
@@ -383,7 +400,6 @@ pub mod robinverse {
             !game.squares[square as usize].mortgaged,
             GameError::AlreadyMortgaged
         );
-        // Buildings anywhere in the group block mortgaging.
         require!(
             !tile(square)
                 .members()
@@ -432,10 +448,6 @@ pub mod robinverse {
         Ok(())
     }
 
-    // -----------------------------------------------------------------
-    // ephemeral rollup: auctions
-    // -----------------------------------------------------------------
-
     pub fn place_bid(ctx: Context<PlayerAction>, amount: u32) -> Result<()> {
         let game = &mut ctx.accounts.game;
         let seat = require_seat(game, &ctx.accounts.player.key())?;
@@ -474,10 +486,6 @@ pub mod robinverse {
         Ok(())
     }
 
-    // -----------------------------------------------------------------
-    // ephemeral rollup: trades
-    // -----------------------------------------------------------------
-
     pub fn propose_trade(
         ctx: Context<PlayerAction>,
         recipient: u8,
@@ -507,7 +515,10 @@ pub mod robinverse {
             squares,
             awaiting_response: true,
         };
-        require!(engine::trade_is_valid(game, &draft), GameError::InvalidTrade);
+        require!(
+            engine::trade_is_valid(game, &draft),
+            GameError::InvalidTrade
+        );
         game.trade = draft;
 
         emit!(TradeProposed {
@@ -526,11 +537,13 @@ pub mod robinverse {
             seat == game.trade.recipient || seat == game.trade.initiator,
             GameError::NotInTrade,
         );
-        // Only the recipient can accept; either side can call it off.
         if accept {
             require!(seat == game.trade.recipient, GameError::NotInTrade);
             let draft = game.trade;
-            require!(engine::trade_is_valid(game, &draft), GameError::InvalidTrade);
+            require!(
+                engine::trade_is_valid(game, &draft),
+                GameError::InvalidTrade
+            );
             engine::apply_trade(game, &draft);
         }
         game.trade = TradeState::idle();
@@ -543,13 +556,6 @@ pub mod robinverse {
         Ok(())
     }
 
-    // -----------------------------------------------------------------
-    // ephemeral rollup: forced progress and exits
-    // -----------------------------------------------------------------
-
-    /// Anyone may call this once the clock has run out, which is what stops a
-    /// disconnected player from freezing the table. The program checks the
-    /// deadline itself rather than trusting a caller-supplied timestamp.
     pub fn force_skip_turn(ctx: Context<AnySigner>) -> Result<()> {
         let game = &mut ctx.accounts.game;
         require!(game.phase != Phase::GameOver, GameError::GameOver);
@@ -573,7 +579,6 @@ pub mod robinverse {
         Ok(())
     }
 
-    /// Voluntary exit, and the path out of unpayable debt.
     pub fn resign(ctx: Context<PlayerAction>) -> Result<()> {
         let game = &mut ctx.accounts.game;
         let seat = require_seat(game, &ctx.accounts.player.key())?;
@@ -590,13 +595,6 @@ pub mod robinverse {
         Ok(())
     }
 
-    // -----------------------------------------------------------------
-    // settlement
-    // -----------------------------------------------------------------
-
-    /// Checkpoints ER state to the base layer without giving the account back.
-    /// Used sparingly — each delegated account only gets a small number of
-    /// sponsored commits before the quota has to be refreshed.
     pub fn checkpoint(ctx: Context<CommitGame>) -> Result<()> {
         MagicIntentBundleBuilder::new(
             ctx.accounts.payer.to_account_info(),
@@ -608,8 +606,6 @@ pub mod robinverse {
         Ok(())
     }
 
-    /// Final settlement. Commits the finished game and returns the account to
-    /// the base layer.
     pub fn settle_game(ctx: Context<CommitGame>) -> Result<()> {
         require!(
             ctx.accounts.game.phase == Phase::GameOver,
@@ -627,20 +623,11 @@ pub mod robinverse {
     }
 }
 
-// ---------------------------------------------------------------------------
-// helpers
-// ---------------------------------------------------------------------------
-
 fn now() -> Result<i64> {
     Ok(Clock::get()?.unix_timestamp)
 }
 
-fn seat_player(
-    game: &mut Game,
-    wallet: Pubkey,
-    name: [u8; NAME_LEN],
-    color: u8,
-) -> Result<u8> {
+fn seat_player(game: &mut Game, wallet: Pubkey, name: [u8; NAME_LEN], color: u8) -> Result<u8> {
     require!(
         (game.player_count as usize) < MAX_PLAYERS,
         GameError::GameFull
@@ -665,14 +652,12 @@ fn seat_player(
     Ok(seat)
 }
 
-/// Resolves the signer to a live seat.
 fn require_seat(game: &Game, wallet: &Pubkey) -> Result<u8> {
     require!(game.phase != Phase::Lobby, GameError::NotStarted);
     require!(game.phase != Phase::GameOver, GameError::GameOver);
     game.seat_of(wallet).ok_or(GameError::NotAPlayer.into())
 }
 
-/// Resolves the signer to a live seat and insists it is their turn.
 fn require_turn(game: &Game, wallet: &Pubkey) -> Result<u8> {
     let seat = require_seat(game, wallet)?;
     require!(seat == game.turn, GameError::NotYourTurn);
@@ -688,7 +673,6 @@ fn owns_group_or_err(game: &Game, square: u8) -> Result<bool> {
     Ok(engine::owns_full_group(game, square))
 }
 
-/// Turns a rejected build into the most useful specific error.
 fn build_failure(game: &Game, seat: u8, square: u8) -> GameError {
     let state = game.squares[square as usize];
     let spec = tile(square);
@@ -718,7 +702,6 @@ fn build_failure(game: &Game, seat: u8, square: u8) -> GameError {
     GameError::UnevenBuild
 }
 
-/// Doubles grant another roll, up to the three-in-a-row jail rule.
 fn can_roll_again(game: &Game) -> bool {
     game.dice_rolled
         && game.die1 == game.die2
@@ -728,14 +711,21 @@ fn can_roll_again(game: &Game) -> bool {
         && game.pending == Pending::None
 }
 
+/// Extra bytes the oracle appends after the 32 randomness bytes. These must
+/// Borsh-deserialize into exactly the callback's trailing parameters — `nonce:
+/// u64` and nothing else. Adding a byte here without adding a matching
+/// parameter shifts the nonce and every callback is rejected.
+pub fn callback_args(nonce: u64) -> Vec<u8> {
+    nonce.to_le_bytes().to_vec()
+}
+
 fn request_randomness(
     ctx: &Context<RequestRandomness>,
     discriminator: Vec<u8>,
     client_seed: u8,
     nonce: u64,
 ) -> Result<()> {
-    let mut args = vec![client_seed];
-    args.extend_from_slice(&nonce.to_le_bytes());
+    let args = callback_args(nonce);
 
     let ix = create_request_scoped_randomness_ix(RequestRandomnessParams {
         payer: ctx.accounts.payer.key(),
@@ -756,10 +746,6 @@ fn request_randomness(
         .invoke_signed_vrf(&ctx.accounts.payer.to_account_info(), &ix)?;
     Ok(())
 }
-
-// ---------------------------------------------------------------------------
-// account contexts
-// ---------------------------------------------------------------------------
 
 #[derive(Accounts)]
 #[instruction(code: [u8; 6])]
@@ -791,7 +777,6 @@ pub struct JoinGame<'info> {
 pub struct DelegateGame<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
-    /// CHECK: delegated by seeds; ownership is validated by the delegation program.
     #[account(mut, del, seeds = [GAME_SEED, &code], bump)]
     pub game: AccountInfo<'info>,
 }
@@ -803,8 +788,6 @@ pub struct PlayerAction<'info> {
     pub game: Account<'info, Game>,
 }
 
-/// Used by `force_skip_turn`: any signer may push a timed-out turn along,
-/// because the program validates the deadline rather than the caller.
 #[derive(Accounts)]
 pub struct AnySigner<'info> {
     pub caller: Signer<'info>,
@@ -819,7 +802,6 @@ pub struct RequestRandomness<'info> {
     pub payer: Signer<'info>,
     #[account(mut)]
     pub game: Account<'info, Game>,
-    /// CHECK: constrained to the known VRF queues below.
     #[account(
         mut,
         constraint = oracle_queue.key() == vrf_sdk::consts::DEFAULT_QUEUE
@@ -845,10 +827,6 @@ pub struct CommitGame<'info> {
     #[account(mut)]
     pub game: Account<'info, Game>,
 }
-
-// ---------------------------------------------------------------------------
-// events — the client rebuilds the game feed from these
-// ---------------------------------------------------------------------------
 
 #[event]
 pub struct GameCreated {
@@ -896,6 +874,14 @@ pub struct PendingResolved {
     pub square: u8,
     pub rent_paid: u32,
     pub tax_paid: u32,
+}
+
+#[event]
+pub struct LeftJail {
+    pub game: Pubkey,
+    pub seat: u8,
+    pub paid: u32,
+    pub used_card: bool,
 }
 
 #[event]

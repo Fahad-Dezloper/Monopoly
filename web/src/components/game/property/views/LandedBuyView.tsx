@@ -9,7 +9,7 @@ import { RentTable } from "@/components/game/property/RentTable";
 import { FLAG_EMOJI } from "@/lib/monopoly/board";
 import type { GameAction } from "@/lib/monopoly/engine";
 import { money } from "@/lib/monopoly/panelView";
-import { groupLabel, groupProgress } from "@/lib/monopoly/stats";
+import { groupLabel } from "@/lib/monopoly/stats";
 import type { GameState, Square } from "@/lib/monopoly/types";
 import { btn, buyButton, cx } from "@/lib/ui";
 
@@ -35,7 +35,8 @@ export function LandedBuyView({
     (index) => state.squares[index].owner === mySeat,
   ).length;
   const progress = { owned: mineInGroup, total: square.group.length };
-  const completesSet = progress.total > 0 && progress.owned + 1 === progress.total;
+  const completesSet =
+    progress.total > 0 && progress.owned + 1 === progress.total;
 
   return (
     <PanelShell
@@ -66,7 +67,11 @@ export function LandedBuyView({
     >
       <PanelSection label="The deal">
         <PanelStat label="Price" value={money(price)} />
-        <PanelStat label="Your cash after" value={money(cashAfter)} tone="good" />
+        <PanelStat
+          label="Your cash after"
+          value={money(cashAfter)}
+          tone="good"
+        />
         <PanelStat
           label="Set progress"
           value={`${progress.owned + 1} of ${progress.total}`}
@@ -75,7 +80,8 @@ export function LandedBuyView({
 
       {completesSet && (
         <div className="my-1 rounded-chip border border-good/35 bg-good/12 px-2.5 py-2 text-[12px] font-semibold text-good">
-          Buying this completes the {groupLabel(square)} — you can start building.
+          Buying this completes the {groupLabel(square)} — you can start
+          building.
         </div>
       )}
 

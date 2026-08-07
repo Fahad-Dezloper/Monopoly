@@ -98,11 +98,7 @@ export function GameDock({
         title="Cards"
         count={cards.length}
       >
-        <CardHand
-          cards={cards}
-          canUse={!!player?.jail && !!act}
-          act={act}
-        />
+        <CardHand cards={cards} canUse={!!player?.jail && !!act} act={act} />
       </DockCard>
 
       <DockCard icon={<SendIcon className="size-4.5" />} title="Your money">

@@ -18,12 +18,6 @@ export const errorBox =
 export const action =
   "inline-flex items-center gap-2 rounded-[10px] border border-line bg-surface-2 px-4 py-2.5 text-[13px] font-semibold text-body transition-colors hover:not-disabled:border-[#3e3e48] hover:not-disabled:bg-[#2a2a32] disabled:cursor-not-allowed disabled:opacity-40";
 
-export const iconButton =
-  "inline-flex items-center gap-1.5 rounded-[10px] border border-line bg-surface-2 px-3 py-2 text-[12px] font-semibold text-body transition-colors hover:border-[#3e3e48] hover:bg-[#2a2a32]";
-
-export const dangerButton =
-  "inline-flex items-center gap-1.5 rounded-[10px] border border-bad/45 bg-transparent px-3 py-2 text-[12px] font-semibold text-[#f07a8a] transition-colors hover:border-bad hover:bg-bad/10 hover:text-[#ff8f9d]";
-
 export const panelClose =
   "border-none bg-transparent px-1 py-0.5 text-[14px] text-inherit opacity-85 hover:opacity-100";
 
@@ -48,18 +42,8 @@ export const overlayWrap =
 export const dialogCard =
   "pointer-events-auto max-h-[85vh] w-[min(360px,100%)] overflow-auto rounded-panel border border-line bg-surface text-body shadow-panel";
 
-export const dialogTitle =
-  "flex items-center gap-2 border-b border-line px-3 py-2.5 text-[13px] font-bold";
-
-export const dialogMessage = "px-3 py-3.5 text-[13px]";
-
-export const dialogActions = "flex flex-wrap gap-1.5 px-3 pb-3";
-
 export const liveBar =
   "rounded-t-panel bg-accent px-3.5 py-2.5 text-[11px] font-bold tracking-[0.06em] text-white uppercase";
 
 export const btn =
   "inline-flex items-center justify-center gap-1.5 rounded-chip border border-line bg-surface-2 px-3.5 py-2.25 text-[13px] font-semibold text-body transition-colors hover:not-disabled:border-[#3a3a44] hover:not-disabled:bg-[#2a2a32] disabled:cursor-not-allowed disabled:opacity-40";
-
-export const btnPrimary =
-  "inline-flex items-center justify-center gap-1.5 rounded-chip border border-accent bg-accent px-3.5 py-2.25 text-[13px] font-semibold text-white transition-colors hover:not-disabled:border-accent-hover hover:not-disabled:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40";
