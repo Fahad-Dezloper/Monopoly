@@ -16,7 +16,8 @@ export function useTurnClock(deadlineAt?: number): number {
   const [remaining, setRemaining] = useState(0);
 
   useEffect(() => {
-    const tick = () => setRemaining(Math.max(0, (deadlineAt ?? 0) - Date.now()));
+    const tick = () =>
+      setRemaining(Math.max(0, (deadlineAt ?? 0) - Date.now()));
     tick();
     const timer = window.setInterval(tick, 250);
     return () => window.clearInterval(timer);

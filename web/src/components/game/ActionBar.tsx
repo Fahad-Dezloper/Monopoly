@@ -5,28 +5,29 @@ import type { GameState } from "@/lib/monopoly/types";
 import { cx } from "@/lib/ui";
 
 const BUTTON =
-  "inline-flex items-center gap-1.75 rounded-[10px] border px-4 py-2.5 text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-38 max-[720px]:px-3 max-[720px]:text-[12px]";
-
-const NEUTRAL =
-  "border-line bg-surface text-body hover:not-disabled:border-[#3e3e48] hover:not-disabled:bg-surface-2";
+  "inline-flex items-center justify-center gap-1.5 rounded-full border px-4 py-2 text-[12px] font-bold transition-all disabled:cursor-not-allowed disabled:opacity-40";
 
 const PRIMARY =
-  "border-accent bg-accent text-white hover:not-disabled:border-accent-hover hover:not-disabled:bg-accent-hover";
+  "border-transparent bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white shadow-[0_4px_12px_rgba(124,58,237,0.35)] hover:not-disabled:opacity-95";
+
+const NEUTRAL =
+  "border-white/25 bg-white/90 text-slate-800 shadow-sm hover:not-disabled:bg-white";
 
 const BUY =
-  "border-[#1f8a45] bg-[#1f8a45] text-white hover:not-disabled:border-[#239b4e] hover:not-disabled:bg-[#239b4e]";
+  "border-transparent bg-emerald-600 text-white shadow-[0_4px_12px_rgba(22,163,74,0.3)] hover:not-disabled:bg-emerald-500";
 
-const DANGER = "border-bad/35 bg-surface text-[#f07a8a]";
+const DANGER =
+  "border-rose-300/80 bg-white/90 text-rose-600 hover:not-disabled:bg-rose-50";
 
 interface ActionBarProps {
   state: GameState;
   isMyTurn: boolean;
   canBuy: boolean;
   diceRolling: boolean;
-  canTrade: boolean;
+  canTrade?: boolean;
   act: (action: GameAction) => void;
   onRollStart: () => void;
-  onOpenTrade: () => void;
+  onOpenTrade?: () => void;
 }
 
 export function ActionBar({
@@ -34,7 +35,7 @@ export function ActionBar({
   isMyTurn,
   canBuy,
   diceRolling,
-  canTrade,
+  canTrade = false,
   act,
   onRollStart,
   onOpenTrade,
@@ -49,8 +50,12 @@ export function ActionBar({
 
   const canRoll = !blocked && (!state.diceRolled || state.doubleCount > 0);
   const canEndTurn = !blocked && state.diceRolled && state.doubleCount === 0;
-  const inJail = isMyTurn && me?.jail && !state.diceRolled;
+  const inJail = isMyTurn && !!me?.jail && !state.diceRolled;
   const price = state.squares[me?.position ?? 0]?.price ?? 0;
+  const declined =
+    typeof state.landedMessage === "string" &&
+    state.landedMessage.toLowerCase().includes("declined");
+  const showBuy = canBuy && !declined;
 
   const rollLabel = diceRolling
     ? "Rolling…"
@@ -58,50 +63,28 @@ export function ActionBar({
       ? "Roll Again"
       : "Roll Dice";
 
-  return (
-    <div className="flex flex-wrap justify-center gap-2 p-2">
-      <button
-        type="button"
-        className={cx(BUTTON, PRIMARY)}
-        disabled={!canRoll}
-        title={state.nextButtonTitle}
-        onClick={() => {
-          onRollStart();
-          act({ type: "NEXT" });
-        }}
-      >
-        <span aria-hidden>🎲</span>
-        {rollLabel}
-      </button>
-
-      <button
-        type="button"
-        className={cx(BUTTON, NEUTRAL)}
-        disabled={!canEndTurn}
-        onClick={() => act({ type: "NEXT" })}
-      >
-        <span aria-hidden>▶</span> End Turn
-      </button>
-
-      {canBuy && (
-        <button
-          type="button"
-          className={cx(BUTTON, BUY)}
-          onClick={() => act({ type: "BUY" })}
-        >
-          <span aria-hidden>＋</span> Buy ${price}
-        </button>
-      )}
-
-      {inJail && (
+  const primary = (() => {
+    if (inJail) {
+      return (
         <>
+          <button
+            type="button"
+            className={cx(BUTTON, PRIMARY)}
+            disabled={blocked}
+            onClick={() => {
+              onRollStart();
+              act({ type: "NEXT" });
+            }}
+          >
+            🎲 Roll doubles
+          </button>
           <button
             type="button"
             className={cx(BUTTON, NEUTRAL)}
             disabled={me.money < 50}
             onClick={() => act({ type: "PAY_JAIL_FINE" })}
           >
-            <span aria-hidden>💵</span> Pay $50
+            Pay $50
           </button>
           {(me.communityChestJailCard || me.chanceJailCard) && (
             <button
@@ -109,47 +92,105 @@ export function ActionBar({
               className={cx(BUTTON, NEUTRAL)}
               onClick={() => act({ type: "USE_JAIL_CARD" })}
             >
-              <span aria-hidden>🎟</span> Use Card
+              Use card
             </button>
           )}
         </>
+      );
+    }
+
+    if (showBuy) {
+      return (
+        <>
+          <button
+            type="button"
+            className={cx(BUTTON, BUY)}
+            onClick={() => act({ type: "BUY" })}
+          >
+            Buy ${price}
+          </button>
+          <button
+            type="button"
+            className={cx(BUTTON, NEUTRAL)}
+            onClick={() => act({ type: "DECLINE_BUY" })}
+          >
+            Decline
+          </button>
+        </>
+      );
+    }
+
+    if (canRoll || diceRolling) {
+      return (
+        <button
+          type="button"
+          className={cx(BUTTON, PRIMARY)}
+          disabled={!canRoll}
+          title={state.nextButtonTitle}
+          onClick={() => {
+            onRollStart();
+            act({ type: "NEXT" });
+          }}
+        >
+          🎲 {rollLabel}
+        </button>
+      );
+    }
+
+    if (canEndTurn) {
+      return (
+        <button
+          type="button"
+          className={cx(BUTTON, PRIMARY)}
+          onClick={() => act({ type: "NEXT" })}
+        >
+          ▶ End Turn
+        </button>
+      );
+    }
+
+    return (
+      <span className="rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-[11px] font-semibold text-white/70">
+        {isMyTurn ? "Resolving…" : "Waiting…"}
+      </span>
+    );
+  })();
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-1.5 px-1 py-0.5">
+      {primary}
+
+      {canTrade && onOpenTrade && state.phase !== "auction" && (
+        <button
+          type="button"
+          className={cx(BUTTON, NEUTRAL)}
+          disabled={!isMyTurn || state.phase === "game_over"}
+          onClick={() => onOpenTrade()}
+          title="Propose a trade"
+        >
+          ⇄ Trade
+        </button>
       )}
 
-      <button
-        type="button"
-        className={cx(BUTTON, NEUTRAL)}
-        disabled={!canTrade}
-        onClick={onOpenTrade}
-        title={canTrade ? "Propose a trade" : "Trade on your turn"}
-      >
-        <span aria-hidden>⇄</span> Trade
-      </button>
+      {state.phase === "auction" && (
+        <button type="button" className={cx(BUTTON, NEUTRAL)} disabled>
+          🔨 Auction live
+        </button>
+      )}
 
-      <button
-        type="button"
-        className={cx(BUTTON, NEUTRAL)}
-        disabled={state.phase !== "auction"}
-        title={
-          state.phase === "auction"
-            ? "Auction in progress"
-            : "Auctions start when a property goes unbought"
-        }
-      >
-        <span aria-hidden>🔨</span> Auction
-      </button>
-
-      <button
-        type="button"
-        className={cx(BUTTON, DANGER)}
-        disabled={!isMyTurn || state.phase === "game_over"}
-        onClick={() => {
-          if (confirm("Resign and hand your assets over?")) {
-            act({ type: "RESIGN" });
-          }
-        }}
-      >
-        <span aria-hidden>☠</span> Bankrupt
-      </button>
+      {isMyTurn && state.phase !== "game_over" && (
+        <button
+          type="button"
+          className={cx(BUTTON, DANGER)}
+          onClick={() => {
+            if (confirm("Resign and hand your assets over?")) {
+              act({ type: "RESIGN" });
+            }
+          }}
+        >
+          ☠ Bankrupt
+        </button>
+      )}
     </div>
   );
 }

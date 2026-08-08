@@ -45,19 +45,20 @@ export function StatsDialog({ state, act, onShowDeed }: StatsDialogProps) {
           return (
             <div
               key={player.index}
-              className="overflow-hidden rounded-sm border border-line"
+              className="overflow-hidden rounded-2xl border border-[#e9e2ff] bg-white"
             >
               <div
-                className="border-b border-line bg-surface-2 px-3 py-2 text-[12.5px] font-bold"
+                className="border-b border-[#e9e2ff] bg-[#f8f6ff] px-3 py-2 text-[12.5px] font-bold text-slate-800"
                 style={{ borderLeft: `4px solid ${player.color}` }}
               >
                 {player.name}
-                <span className="ml-1.5 font-semibold text-dim">
-                  ${Math.floor(player.money)} · net ${netWorth(state, player.index)}
+                <span className="ml-1.5 font-semibold text-slate-400">
+                  ${Math.floor(player.money)} · net $
+                  {netWorth(state, player.index)}
                 </span>
               </div>
               {deeds.length === 0 && (
-                <div className="px-3 py-2 text-[11.5px] text-dim">
+                <div className="px-3 py-2 text-[11.5px] text-slate-400">
                   No properties yet
                 </div>
               )}
@@ -65,8 +66,8 @@ export function StatsDialog({ state, act, onShowDeed }: StatsDialogProps) {
                 <div
                   key={square.index}
                   className={cx(
-                    "flex items-center gap-2 px-3 py-1.5 text-[11.5px]",
-                    square.mortgage && "text-dim",
+                    "flex items-center gap-2 px-3 py-1.5 text-[11.5px] text-slate-700 hover:bg-[#fdfcff]",
+                    square.mortgage && "text-slate-400",
                   )}
                   onMouseEnter={() => onShowDeed(square.index)}
                   onMouseLeave={() => onShowDeed(null)}

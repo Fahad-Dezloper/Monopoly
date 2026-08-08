@@ -1,0 +1,9 @@
+node_modules
+.next
+dist
+target
+pnpm-lock.yaml
+package-lock.json
+*.svg
+onchain/idl
+web/src/lib/chain/robinverse.json

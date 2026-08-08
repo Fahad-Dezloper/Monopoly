@@ -43,28 +43,21 @@ export function RailTabs({
             title={label}
             onClick={() => onTabChange(key)}
             className={cx(
-              "relative inline-flex h-9 items-center justify-center gap-1.5 overflow-hidden rounded-[10px] border text-[12px] font-bold transition-[flex-grow,background-color,border-color,color] duration-300 ease-out motion-reduce:transition-none",
+              "relative inline-flex h-9 items-center justify-center gap-1.5 overflow-hidden rounded-2xl border text-[12px] font-bold transition-all",
               active
-                ? "flex-3 bg-[#C589FA] text-black"
-                : "flex-1 border-line bg-surface px-0 text-dim hover:border-[#3e3e48] hover:text-body",
+                ? "flex-3 border-[#e9e2ff] bg-white text-[#7c3aed] shadow-sm"
+                : "flex-1 border-[#e9e2ff] bg-white/80 text-slate-400 hover:border-[#7c3aed]/30 hover:bg-[#f8f6ff] hover:text-[#7c3aed]",
             )}
           >
-            <Icon className="size-4.5 shrink-0" />
+            <Icon className="size-4 shrink-0" />
             {active && (
-              <span
-                className={cx(
-                  "overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-out motion-reduce:transition-none",
-                  active ? "max-w-24 opacity-100" : "max-w-0 opacity-0",
-                )}
-              >
-                {label}
-              </span>
+              <span className="overflow-hidden whitespace-nowrap">{label}</span>
             )}
             {badge > 0 && (
               <span
                 className={cx(
-                  "grid h-4 min-w-4 place-items-center rounded-lg bg-accent px-1 text-[10px] font-bold text-white",
-                  !active && "absolute h-3.5 min-w-3.5 px-0.5",
+                  "grid h-4 min-w-4 place-items-center rounded-full bg-[#7c3aed] px-1 text-[10px] font-bold text-white",
+                  !active && "absolute top-1 right-1 h-3.5 min-w-3.5",
                 )}
               >
                 {badge}

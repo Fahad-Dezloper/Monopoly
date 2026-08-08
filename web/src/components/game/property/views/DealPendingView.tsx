@@ -32,7 +32,9 @@ export function DealPendingView({
 
   return (
     <PanelShell
-      eyebrow={trade.awaitingResponse ? "Offer on the table" : "Building a deal"}
+      eyebrow={
+        trade.awaitingResponse ? "Offer on the table" : "Building a deal"
+      }
       title={`${initiator?.name} ⇄ ${recipient?.name}`}
       subtitle={
         trade.awaitingResponse

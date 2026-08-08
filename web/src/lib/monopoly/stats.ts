@@ -7,9 +7,7 @@ export function netWorth(state: GameState, playerIndex: number): number {
   let total = Math.floor(p.money);
   for (const s of state.squares) {
     if (s.owner !== playerIndex) continue;
-    total += s.mortgage
-      ? (s.mortgageValue || Math.floor(s.price / 2))
-      : s.price;
+    total += s.mortgage ? s.mortgageValue || Math.floor(s.price / 2) : s.price;
     if (s.hotel === 1) total += s.hotelprice || s.houseprice;
     else total += s.house * s.houseprice;
   }
@@ -83,7 +81,9 @@ export function currentRent(state: GameState, square: Square): number {
   }
 
   if (square.groupNumber === 2) {
-    const multiplier = ownsWholeGroup(state, square) ? square.rent2 : square.rent1;
+    const multiplier = ownsWholeGroup(state, square)
+      ? square.rent2
+      : square.rent1;
     return multiplier * AVERAGE_ROLL;
   }
 
@@ -129,7 +129,8 @@ export function playerHoldings(
   }
 
   return {
-    cash: player && Number.isFinite(player.money) ? Math.floor(player.money) : 0,
+    cash:
+      player && Number.isFinite(player.money) ? Math.floor(player.money) : 0,
     invested,
     deeds: deeds.length,
     houses,

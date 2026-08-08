@@ -19,9 +19,9 @@ export type PlayerColor =
 export interface Square {
   index: number;
   name: string;
-  
+
   shortName?: string;
-  
+
   flagCode?: string;
   pricetext: string;
   color: string;
@@ -99,7 +99,7 @@ export interface TradeDraft {
   recipient: number;
   leftMoney: number;
   rightMoney: number;
-  properties: number[]; 
+  properties: number[];
   communityChestJailCard: number;
   chanceJailCard: number;
   awaitingResponse: boolean;
@@ -140,6 +140,6 @@ export interface GameState {
   winner: number | null;
   housesAvailable: number;
   hotelsAvailable: number;
-  
+
   turnDeadlineAt?: number;
 }

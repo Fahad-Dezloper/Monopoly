@@ -208,6 +208,28 @@ export function useMultiplayer() {
     async (text: string) => {
       const body = text.trim();
       if (!room || !playerId || !body) return;
+
+      // Optimistic local append so lobby/game chat feels instant.
+      const me = room.members.find((m) => m.id === playerId);
+      const optimisticId = `local-${Date.now()}`;
+      setRoom((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          messages: [
+            ...(prev.messages ?? []),
+            {
+              id: optimisticId,
+              playerId,
+              username: me?.username ?? "you",
+              color: me?.color ?? "blue",
+              text: body,
+              at: Date.now(),
+            },
+          ],
+        };
+      });
+
       const { ok, data } = await request<RoomResponse>(
         `/rooms/${room.code}/chat`,
         {
@@ -215,7 +237,11 @@ export function useMultiplayer() {
           body: JSON.stringify({ playerId, text: body }),
         },
       ).catch(() => ({ ok: false, status: 0, data: {} as RoomResponse }));
-      if (ok && data.room) applyRoom(data.room);
+      if (ok && data.room) {
+        applyRoom(data.room);
+      } else {
+        setError(errorMessage(data, "chat failed"));
+      }
     },
     [room, playerId, applyRoom],
   );

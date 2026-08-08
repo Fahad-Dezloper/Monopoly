@@ -27,6 +27,4 @@ export type GameAction =
   | { type: "CANCEL_TRADE" }
   | { type: "TOGGLE_STATS" }
   | { type: "RESIGN" }
-  | { type: "AI_BUY_IF"; shouldBuy: boolean }
-  | { type: "AI_BID"; amount: number }
   | { type: "SKIP_TURN" };

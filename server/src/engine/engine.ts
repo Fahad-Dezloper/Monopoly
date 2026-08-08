@@ -15,7 +15,6 @@ import type {
   TradeDraft,
 } from "./types";
 
-/** Players get 3 minutes to take their turn before it auto-passes. */
 export const TURN_LIMIT_MS = 3 * 60 * 1000;
 
 function shuffleDeck(length: number): number[] {
@@ -62,7 +61,12 @@ function currentPlayer(state: GameState): Player {
   return state.players[state.turn];
 }
 
-function pay(state: GameState, playerIndex: number, amount: number, creditor: number): boolean {
+function pay(
+  state: GameState,
+  playerIndex: number,
+  amount: number,
+  creditor: number,
+): boolean {
   const p = state.players[playerIndex];
   p.money -= amount;
   if (p.money < 0) {
@@ -81,7 +85,6 @@ function groupHasMortgage(state: GameState, square: Square): boolean {
   return square.group.some((i) => state.squares[i].mortgage);
 }
 
-/** House: full color set, even build, &lt; 4 houses, no hotel. */
 function canBuildHouseOn(
   state: GameState,
   playerIndex: number,
@@ -97,10 +100,6 @@ function canBuildHouseOn(
   return true;
 }
 
-/**
- * Hotel: full color set, every property has 4 houses (or already a hotel),
- * target has exactly 4 houses / no hotel.
- */
 function canBuildHotelOn(
   state: GameState,
   playerIndex: number,
@@ -147,7 +146,6 @@ function calculateRent(
     for (const rr of s.group) {
       if (state.squares[rr].owner === s.owner) owned += 1;
     }
-    // Double rent when a Fortune card sends you to the nearest hub.
     const mult = increasedRent ? 2 : 1;
     if (owned <= 1) return (s.rent1 || 25) * mult;
     if (owned === 2) return (s.rent2 || 50) * mult;
@@ -205,7 +203,10 @@ export function createInitialState(): GameState {
   };
 }
 
-export function startGame(setups: PlayerSetup[], options?: { shuffle?: boolean }): GameState {
+export function startGame(
+  setups: PlayerSetup[],
+  options?: { shuffle?: boolean },
+): GameState {
   const state = createInitialState();
   const count = setups.length;
   state.playerCount = count;
@@ -227,15 +228,13 @@ export function startGame(setups: PlayerSetup[], options?: { shuffle?: boolean }
     communityChestJailCard: false,
     chanceJailCard: false,
     bidding: true,
-    human: true,
   }));
 
   for (let i = 1; i <= count; i++) {
     const setup = setups[order[i - 1] - 1];
     const p = players[i];
     p.color = setup.color;
-    p.human = !setup.isAI;
-    p.name = setup.isAI ? `AI Test ${i}` : setup.name || `Player ${i}`;
+    p.name = setup.name || `Player ${i}`;
   }
 
   state.players = players;
@@ -265,28 +264,29 @@ function beginTurn(state: GameState): void {
   state.nextButtonLabel = "Roll Dice";
   state.nextButtonTitle = "Roll the dice and move your token accordingly.";
   state.selectedProperty = -1;
+  state.popup = null;
+  state.card = null;
   state.turnDeadlineAt = Date.now() + TURN_LIMIT_MS;
 
   addAlert(state, `It is ${p.name}'s turn.`);
 
   if (p.money < 0) {
-    // stay in debt flow
   }
 
   if (p.jail) {
     state.landedMessage = "You are in jail.";
     state.nextButtonTitle =
       "Roll the dice. If you throw doubles, you will get out of jail.";
-    if (p.jailroll === 0) addAlert(state, `This is ${p.name}'s first turn in jail.`);
-    else if (p.jailroll === 1) addAlert(state, `This is ${p.name}'s second turn in jail.`);
+    if (p.jailroll === 0)
+      addAlert(state, `This is ${p.name}'s first turn in jail.`);
+    else if (p.jailroll === 1)
+      addAlert(state, `This is ${p.name}'s second turn in jail.`);
     else if (p.jailroll === 2) {
       state.landedMessage +=
         " NOTE: If you do not throw doubles after this roll, you must pay the $50 fine.";
       addAlert(state, `This is ${p.name}'s third turn in jail.`);
     }
   }
-
-  // AI auto-actions handled by hook after state update
 }
 
 function goToJail(state: GameState): void {
@@ -309,7 +309,6 @@ function land(state: GameState, increasedRent = false): void {
   state.landedMessage = `You landed on ${s.name}.`;
   addAlert(state, `${p.name} landed on ${s.name}.`);
 
-  // Buyable unowned property
   if (s.price !== 0 && s.owner === 0) {
     state.landedMessage = `You landed on ${s.name}.`;
     if (!state.auctionQueue.includes(p.position)) {
@@ -317,10 +316,18 @@ function land(state: GameState, increasedRent = false): void {
     }
   }
 
-  // Rent
   if (s.owner !== 0 && s.owner !== state.turn && !s.mortgage) {
-    const rent = calculateRent(state, p.position, state.die1, state.die2, increasedRent);
-    addAlert(state, `${p.name} paid $${rent} rent to ${state.players[s.owner].name}.`);
+    const rent = calculateRent(
+      state,
+      p.position,
+      state.die1,
+      state.die2,
+      increasedRent,
+    );
+    addAlert(
+      state,
+      `${p.name} paid $${rent} rent to ${state.players[s.owner].name}.`,
+    );
     pay(state, state.turn, rent, s.owner);
     state.players[s.owner].money += rent;
     state.landedMessage = `You landed on ${s.name}. ${state.players[s.owner].name} collected $${rent} rent.`;
@@ -328,14 +335,12 @@ function land(state: GameState, increasedRent = false): void {
     state.landedMessage = `You landed on ${s.name}. Property is mortgaged; no rent was collected.`;
   }
 
-  // Tax tiles (amounts from board JSON)
   if (s.taxAmount > 0) {
     pay(state, state.turn, s.taxAmount, 0);
     addAlert(state, `${p.name} paid $${s.taxAmount} for landing on ${s.name}.`);
     state.landedMessage = `You landed on ${s.name}. Pay $${s.taxAmount}.`;
   }
 
-  // Go to Jail
   if (p.position === 30 || s.tileType === "go_to_jail") {
     state.popup = {
       open: true,
@@ -347,7 +352,6 @@ function land(state: GameState, increasedRent = false): void {
     return;
   }
 
-  // Treasury / Fortune cards
   if (s.tileType === "treasury" || [2, 17, 33].includes(p.position)) {
     drawCommunityChest(state);
     return;
@@ -369,7 +373,6 @@ function drawFromDeck(
   let nextDeck = deck;
   let nextIndex = index + 1;
 
-  // Remove Get Out of Jail Free from deck while held
   if (removeIf?.(cardIndex)) {
     nextDeck = deck.filter((_, i) => i !== index % deck.length);
     nextIndex = index % Math.max(nextDeck.length, 1);
@@ -430,7 +433,11 @@ function drawChance(state: GameState): void {
   };
 }
 
-function streetRepairs(state: GameState, housePrice: number, hotelPrice: number): void {
+function streetRepairs(
+  state: GameState,
+  housePrice: number,
+  hotelPrice: number,
+): void {
   const p = currentPlayer(state);
   let cost = 0;
   for (const s of state.squares) {
@@ -498,7 +505,6 @@ function advanceToNearestRailroad(state: GameState): void {
 
 function applyCommunityCard(state: GameState, index: number): void {
   const p = currentPlayer(state);
-  // Indices match monopoly_board_game.json treasury_cards order.
   switch (index) {
     case 0:
       advance(state, 0);
@@ -570,7 +576,6 @@ function applyCommunityCard(state: GameState, index: number): void {
 
 function applyChanceCard(state: GameState, index: number): void {
   const p = currentPlayer(state);
-  // Indices match monopoly_board_game.json fortune_cards order.
   switch (index) {
     case 0:
       advance(state, 0);
@@ -725,7 +730,6 @@ function rollDice(state: GameState): void {
 }
 
 function endTurnOrAuction(state: GameState): void {
-  // Start auction for unbought properties
   while (state.auctionQueue.length > 0) {
     const idx = state.auctionQueue.shift()!;
     const s = state.squares[idx];
@@ -744,7 +748,6 @@ function endTurnOrAuction(state: GameState): void {
     for (let i = 1; i <= state.playerCount; i++) {
       state.players[i].bidding = true;
     }
-    // Fresh window for auction responses
     state.turnDeadlineAt = Date.now() + TURN_LIMIT_MS;
     return;
   }
@@ -775,13 +778,11 @@ function applyPopupOk(state: GameState): void {
   }
 }
 
-/** Kick the current player after the time limit — bankrupt/eliminate, don't just pass. */
 function skipTimedOutTurn(state: GameState): void {
   if (state.phase === "game_over" || state.winner != null) return;
   const p = currentPlayer(state);
   if (!p || p.position < 0 || !Number.isFinite(p.money)) return;
 
-  // Drop in-progress UI; timed-out player does not resolve popups/auctions
   state.popup = null;
   state.card = null;
   state.trade = null;
@@ -795,7 +796,6 @@ function skipTimedOutTurn(state: GameState): void {
     state.phase = state.diceRolled ? "rolled" : "turn_start";
   }
 
-  // Assets return to the bank on timeout
   p.creditor = 0;
   eliminateCurrentPlayer(state, "timeout");
 }
@@ -832,17 +832,16 @@ function advanceAuctionBidder(state: GameState): void {
   const a = state.auction!;
   if (a.highestBidder === 0) a.highestBidder = a.currentBidder;
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     a.currentBidder += 1;
-    if (a.currentBidder > state.playerCount) a.currentBidder -= state.playerCount;
+    if (a.currentBidder > state.playerCount)
+      a.currentBidder -= state.playerCount;
 
     if (a.currentBidder === a.highestBidder) {
       finalizeAuction(state);
       return;
     }
     if (state.players[a.currentBidder].bidding) {
-      // AI bids handled by hook
       return;
     }
   }
@@ -932,7 +931,6 @@ function eliminateCurrentPlayer(
     return;
   }
 
-  // Continue with remaining players
   state.diceRolled = true;
   state.doubleCount = 0;
   endTurnOrAuction(state);
@@ -1019,8 +1017,6 @@ export type GameAction =
   | { type: "CANCEL_TRADE" }
   | { type: "TOGGLE_STATS" }
   | { type: "RESIGN" }
-  | { type: "AI_BUY_IF"; shouldBuy: boolean }
-  | { type: "AI_BID"; amount: number }
   | { type: "SKIP_TURN" };
 
 export function gameReducer(prev: GameState, action: GameAction): GameState {
@@ -1035,14 +1031,6 @@ export function gameReducer(prev: GameState, action: GameAction): GameState {
     case "NEXT": {
       if (state.phase === "auction" || state.phase === "card") break;
       if (state.popup?.open) break;
-
-      if (p && !p.human && p.money < 0) {
-        // AI debt handled externally; if still negative resign
-        if (p.money < 0) {
-          resignPlayer(state);
-          break;
-        }
-      }
 
       if (state.diceRolled && state.doubleCount === 0) {
         endTurnOrAuction(state);
@@ -1064,8 +1052,21 @@ export function gameReducer(prev: GameState, action: GameAction): GameState {
       break;
     }
 
-    case "DECLINE_BUY":
+    case "DECLINE_BUY": {
+      const sq = state.squares[p.position];
+      if (sq.price > 0 && sq.owner === 0) {
+        if (!state.auctionQueue.includes(p.position)) {
+          state.auctionQueue.push(p.position);
+        }
+        addAlert(state, `${p.name} declined to buy ${sq.name}.`);
+        state.landedMessage = `You declined ${sq.name}.`;
+        // Extra roll pending → keep turn; otherwise open auction / next turn.
+        if (state.doubleCount === 0) {
+          endTurnOrAuction(state);
+        }
+      }
       break;
+    }
 
     case "PAY_JAIL_FINE": {
       pay(state, state.turn, GAME_META.jail_fine, 0);
@@ -1126,7 +1127,9 @@ export function gameReducer(prev: GameState, action: GameAction): GameState {
 
     case "BUY_HOUSE": {
       const idx =
-        typeof action.index === "number" ? action.index : state.selectedProperty;
+        typeof action.index === "number"
+          ? action.index
+          : state.selectedProperty;
       if (idx < 0) break;
       state.selectedProperty = idx;
       const sq = state.squares[idx];
@@ -1150,16 +1153,19 @@ export function gameReducer(prev: GameState, action: GameAction): GameState {
 
     case "SELL_HOUSE": {
       const idx =
-        typeof action.index === "number" ? action.index : state.selectedProperty;
+        typeof action.index === "number"
+          ? action.index
+          : state.selectedProperty;
       if (idx < 0) break;
       state.selectedProperty = idx;
       const sq = state.squares[idx];
       if (sq.owner !== state.turn || sq.house === 0) break;
-      const maxHouses = Math.max(...sq.group.map((i) => state.squares[i].house));
+      const maxHouses = Math.max(
+        ...sq.group.map((i) => state.squares[i].house),
+      );
       if (sq.house < maxHouses) break;
 
       if (sq.hotel === 1) {
-        // Need 4 houses back from the bank to demote the hotel.
         if (state.housesAvailable < 4) break;
         sq.hotel = 0;
         sq.house = 4;
@@ -1271,11 +1277,6 @@ export function gameReducer(prev: GameState, action: GameAction): GameState {
     case "PROPOSE_TRADE": {
       if (!state.trade) break;
       state.trade.awaitingResponse = true;
-      const recip = state.players[state.trade.recipient];
-      if (!recip.human) {
-        // AI accepts simple positive trades
-        applyTrade(state, state.trade);
-      }
       break;
     }
 
@@ -1297,35 +1298,6 @@ export function gameReducer(prev: GameState, action: GameAction): GameState {
     case "RESIGN":
       resignPlayer(state);
       break;
-
-    case "AI_BUY_IF": {
-      if (action.shouldBuy) {
-        const sq = state.squares[p.position];
-        if (sq.price > 0 && sq.owner === 0 && p.money >= sq.price) {
-          pay(state, state.turn, sq.price, 0);
-          sq.owner = state.turn;
-          addAlert(state, `${p.name} bought ${sq.name} for ${sq.pricetext}.`);
-          state.auctionQueue = state.auctionQueue.filter((i) => i !== p.position);
-        }
-      }
-      break;
-    }
-
-    case "AI_BID": {
-      if (!state.auction) break;
-      if (action.amount < 0) {
-        state.players[state.auction.currentBidder].bidding = false;
-        advanceAuctionBidder(state);
-      } else if (action.amount === 0) {
-        advanceAuctionBidder(state);
-      } else {
-        const a = state.auction;
-        a.highestBid = action.amount;
-        a.highestBidder = a.currentBidder;
-        advanceAuctionBidder(state);
-      }
-      break;
-    }
   }
 
   return state;
@@ -1335,7 +1307,9 @@ export function canBuyProperty(state: GameState): boolean {
   const p = state.players[state.turn];
   if (!p || state.phase === "setup") return false;
   const sq = state.squares[p.position];
-  return sq.price > 0 && sq.owner === 0 && p.money >= sq.price && state.diceRolled;
+  return (
+    sq.price > 0 && sq.owner === 0 && p.money >= sq.price && state.diceRolled
+  );
 }
 
 export function ownedByCurrent(state: GameState): Square[] {

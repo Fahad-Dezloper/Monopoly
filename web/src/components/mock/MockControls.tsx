@@ -41,7 +41,7 @@ export function MockControls({
     return (
       <button
         type="button"
-        className="fixed right-4 bottom-4 z-200 size-11.5 rounded-full border border-line bg-accent text-[20px] text-white shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+        className="fixed right-4 bottom-4 z-200 size-11.5 rounded-full border border-[#e9e2ff] bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-[20px] text-white shadow-lg"
         onClick={() => onOpenChange(true)}
         title="Open mock studio"
       >
@@ -51,23 +51,35 @@ export function MockControls({
   }
 
   return (
-    <aside className="fixed inset-y-0 right-0 z-200 flex w-80 flex-col border-l border-line bg-[#0b0b10] font-sans shadow-[-18px_0_40px_rgba(0,0,0,0.45)]">
-      <header className="flex items-start justify-between gap-2 border-b border-line px-3.5 pt-3.5 pb-2.5">
+    <aside className="fixed inset-y-0 right-0 z-200 flex w-80 flex-col border-l border-[#e9e2ff] bg-white font-sans text-slate-800 shadow-[-18px_0_40px_rgba(109,40,217,0.08)]">
+      <header className="flex items-start justify-between gap-2 border-b border-[#e9e2ff] px-3.5 pt-3.5 pb-2.5">
         <div>
-          <strong className="block text-[13px]">Mock studio</strong>
-          <span className="text-[10.5px] text-dim">design surface — no server, no sockets</span>
+          <strong className="block text-[13px] text-slate-900">
+            Mock studio
+          </strong>
+          <span className="text-[10.5px] text-slate-400">
+            design surface — no server, no sockets
+          </span>
         </div>
-        <button type="button" className="border-none bg-transparent text-[14px] text-dim hover:text-body" onClick={() => onOpenChange(false)}>
+        <button
+          type="button"
+          className="border-none bg-transparent text-[14px] text-slate-400 hover:text-slate-700"
+          onClick={() => onOpenChange(false)}
+        >
           ✕
         </button>
       </header>
 
-      <div className="flex gap-1 border-b border-line px-3.5 py-2.5">
-        {(["game", "lobby", "home"] as const).map((value) => (
+      <div className="flex gap-1 border-b border-[#e9e2ff] px-3.5 py-2.5">
+        {(["game", "entry"] as const).map((value) => (
           <button
             key={value}
             type="button"
-            className={cx("flex-1 rounded-chip border border-line bg-surface p-1.75 text-[11px] text-dim capitalize", screen === value && "border-transparent bg-accent text-white")}
+            className={cx(
+              "flex-1 rounded-full border border-[#e9e2ff] bg-[#f8f6ff] p-1.75 text-[11px] font-semibold text-slate-500 capitalize hover:border-[#7c3aed]/35",
+              screen === value &&
+                "border-transparent bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white",
+            )}
             onClick={() => onScreenChange(value)}
           >
             {value}
@@ -75,8 +87,11 @@ export function MockControls({
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-1.25 border-b border-line px-3.5 py-2.5 *:rounded-[7px] *:border *:border-line *:bg-surface *:p-1.5 *:text-[10.5px] *:text-dim *:hover:border-accent *:hover:text-body">
-        <button type="button" onClick={() => onAll({ mock: true, visible: true })}>
+      <div className="grid grid-cols-2 gap-1.25 border-b border-[#e9e2ff] px-3.5 py-2.5 *:rounded-xl *:border *:border-[#e9e2ff] *:bg-[#fdfcff] *:p-1.5 *:text-[10.5px] *:font-semibold *:text-slate-600 *:hover:border-[#7c3aed]/40 *:hover:bg-[#f8f6ff] *:hover:text-[#7c3aed]">
+        <button
+          type="button"
+          onClick={() => onAll({ mock: true, visible: true })}
+        >
           All mock
         </button>
         <button type="button" onClick={() => onAll({ mock: false })}>
@@ -90,16 +105,21 @@ export function MockControls({
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-3.5 pt-2 pb-3.5 [scrollbar-color:var(--color-line)_transparent] scrollbar-thin">
+      <div className="min-h-0 flex-1 overflow-y-auto px-3.5 pt-2 pb-3.5 [scrollbar-color:#e9e2ff_transparent] scrollbar-thin">
         {Object.entries(groups).map(([group, items]) => (
           <section key={group} className="mt-2.5">
-            <h3 className="mt-0 mb-1.5 text-[9.5px] tracking-[0.12em] text-[#6d6c80] uppercase">{group}</h3>
+            <h3 className="mt-0 mb-1.5 text-[9.5px] font-extrabold tracking-[0.12em] text-[#7c3aed] uppercase">
+              {group}
+            </h3>
             {items.map((entry) => {
               const flag = flags[entry.key];
               return (
                 <div
                   key={entry.key}
-                  className={cx("mb-1 flex items-center gap-2 rounded-[9px] border border-line bg-surface px-2 py-1.5", !flag.visible && "opacity-45")}
+                  className={cx(
+                    "mb-1 flex items-center gap-2 rounded-xl border border-[#e9e2ff] bg-[#fdfcff] px-2 py-1.5",
+                    !flag.visible && "opacity-45",
+                  )}
                 >
                   <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
                     <input
@@ -108,13 +128,22 @@ export function MockControls({
                       onChange={() => onToggleVisible(entry.key)}
                     />
                     <span className="flex min-w-0 flex-col">
-                      <span className="text-[11.5px] font-semibold">{entry.label}</span>
-                      <span className="truncate text-[9.5px] text-[#6d6c80]">{entry.file}</span>
+                      <span className="text-[11.5px] font-semibold text-slate-800">
+                        {entry.label}
+                      </span>
+                      <span className="truncate text-[9.5px] text-slate-400">
+                        {entry.file}
+                      </span>
                     </span>
                   </label>
                   <button
                     type="button"
-                    className={cx("w-14.5 shrink-0 rounded-full border py-1.25 text-[10px] font-bold", flag.mock ? "border-transparent bg-good text-[#0b0b0f]" : "border-line bg-[#1c1c24] text-dim")}
+                    className={cx(
+                      "w-14.5 shrink-0 rounded-full border py-1.25 text-[10px] font-bold",
+                      flag.mock
+                        ? "border-transparent bg-emerald-500 text-white"
+                        : "border-[#e9e2ff] bg-white text-slate-400",
+                    )}
                     onClick={() => onToggleMock(entry.key)}
                     title={
                       flag.mock
@@ -131,9 +160,13 @@ export function MockControls({
         ))}
       </div>
 
-      <footer className="border-t border-line px-3.5 py-2.5 text-[10px]">
-        <span className="mb-0.75 block tracking-[0.1em] text-[#6d6c80] uppercase">last action</span>
-        <code className="block max-h-12 overflow-auto break-all text-accent">{lastAction || "—"}</code>
+      <footer className="border-t border-[#e9e2ff] px-3.5 py-2.5 text-[10px]">
+        <span className="mb-0.75 block tracking-[0.1em] text-slate-400 uppercase">
+          last action
+        </span>
+        <code className="block max-h-12 overflow-auto break-all text-[#7c3aed]">
+          {lastAction || "—"}
+        </code>
       </footer>
     </aside>
   );

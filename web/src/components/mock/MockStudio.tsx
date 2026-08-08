@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { EntryMockView } from "@/components/mock/EntryMockView";
 import { GameMockView } from "@/components/mock/GameMockView";
-import { HomeMockView } from "@/components/mock/HomeMockView";
-import { LobbyMockView } from "@/components/mock/LobbyMockView";
 import { MockControls } from "@/components/mock/MockControls";
 import {
   defaultFlags,
@@ -11,16 +11,40 @@ import {
   type MockScreen,
 } from "@/components/mock/mockRegistry";
 
+/**
+ * Deep links a state: `/mock?screen=entry&only=welcome&panel=1`.
+ *
+ * `only` lists the components to show and hides the rest, which is what makes a
+ * single state addressable — for sharing a design, and for driving the studio
+ * from a headless browser during testing.
+ */
+function flagsFromUrl(
+  screen: MockScreen,
+  params: URLSearchParams,
+): Record<string, MockFlag> {
+  const flags = defaultFlags(screen);
+  const only = params.get("only");
+  if (!only) return flags;
+
+  const wanted = new Set(only.split(",").filter(Boolean));
+  for (const key of Object.keys(flags)) {
+    flags[key] = { ...flags[key], visible: wanted.has(key) };
+  }
+  return flags;
+}
+
 export function MockStudio() {
-  const [screen, setScreen] = useState<MockScreen>("game");
-  const [open, setOpen] = useState(true);
+  const params = useSearchParams();
+  const urlScreen = params.get("screen") === "entry" ? "entry" : "game";
+
+  const [screen, setScreen] = useState<MockScreen>(urlScreen);
+  const [open, setOpen] = useState(params.get("panel") !== "0");
   const [lastAction, setLastAction] = useState("");
   const [flagsByScreen, setFlagsByScreen] = useState<
     Record<MockScreen, Record<string, MockFlag>>
   >({
-    game: defaultFlags("game"),
-    lobby: defaultFlags("lobby"),
-    home: defaultFlags("home"),
+    game: flagsFromUrl("game", params),
+    entry: flagsFromUrl("entry", params),
   });
 
   const flags = flagsByScreen[screen];
@@ -49,11 +73,8 @@ export function MockStudio() {
             onAction={(action) => setLastAction(JSON.stringify(action))}
           />
         )}
-        {screen === "lobby" && (
-          <LobbyMockView flags={flags} onAction={setLastAction} />
-        )}
-        {screen === "home" && (
-          <HomeMockView flags={flags} onAction={setLastAction} />
+        {screen === "entry" && (
+          <EntryMockView flags={flags} onAction={setLastAction} />
         )}
       </div>
 

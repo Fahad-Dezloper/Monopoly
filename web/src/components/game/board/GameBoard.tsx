@@ -1,6 +1,7 @@
 "use client";
 
 import { BoardCenter } from "@/components/game/board/BoardCenter";
+import type { LogLink } from "@/components/game/rail/LiveLog";
 import { BoardOverlayTile } from "@/components/game/board/BoardOverlayTile";
 import {
   BOARD_IMAGE,
@@ -9,10 +10,13 @@ import {
   tileRects,
   type BoardSpec,
 } from "@/lib/monopoly/boardGeometry";
+import type { GameAction } from "@/lib/monopoly/engine";
 import type { GameState, Player } from "@/lib/monopoly/types";
 
 interface GameBoardProps {
   state: GameState;
+  logLinks?: LogLink[];
+  explorerFor?: (signature: string) => string;
   selectedIndex: number | null;
   onSelectSquare: (index: number | null) => void;
   diceRolling?: boolean;
@@ -20,10 +24,19 @@ interface GameBoardProps {
   hopping?: Record<number, number>;
   spec?: BoardSpec;
   showGrid?: boolean;
+  focusOwner?: number | null;
+  isMyTurn?: boolean;
+  canBuy?: boolean;
+  canTrade?: boolean;
+  act?: (action: GameAction) => void;
+  onRollStart?: () => void;
+  onOpenTrade?: () => void;
 }
 
 export function GameBoard({
   state,
+  logLinks,
+  explorerFor,
   selectedIndex,
   onSelectSquare,
   diceRolling = false,
@@ -31,6 +44,13 @@ export function GameBoard({
   hopping = {},
   spec = DEFAULT_BOARD_SPEC,
   showGrid = false,
+  focusOwner = null,
+  isMyTurn = false,
+  canBuy = false,
+  canTrade = false,
+  act,
+  onRollStart,
+  onOpenTrade,
 }: GameBoardProps) {
   const rects = tileRects(spec);
   const center = centerRect(spec);
@@ -46,7 +66,7 @@ export function GameBoard({
   return (
     <div className="grid h-full min-h-0 place-items-center [container-type:size]">
       <div
-        className="relative aspect-square h-[min(100cqh,100cqw)] w-[min(100cqh,100cqw)] overflow-hidden rounded-sm bg-ink shadow-[0_1.5cqi_4cqi_rgba(0,0,0,0.55)] [container-type:size]"
+        className="relative aspect-square h-[min(100cqh,100cqw)] w-[min(100cqh,100cqw)] overflow-hidden rounded-2xl bg-ink shadow-[0_1.5cqi_4cqi_rgba(0,0,0,0.35)] [container-type:size]"
         role="grid"
         aria-label="game board"
       >
@@ -58,7 +78,7 @@ export function GameBoard({
         />
 
         <div
-          className="absolute"
+          className="absolute z-30"
           style={{
             left: `${center.left}%`,
             top: `${center.top}%`,
@@ -67,11 +87,20 @@ export function GameBoard({
           }}
         >
           <BoardCenter
+            logLinks={logLinks}
+            explorerFor={explorerFor}
+            state={state}
             die1={state.die1}
             die2={state.die2}
             diceRolled={state.diceRolled}
             diceRolling={diceRolling}
             currentPlayer={state.players[state.turn]}
+            isMyTurn={isMyTurn}
+            canBuy={canBuy}
+            canTrade={canTrade}
+            act={act ?? (() => undefined)}
+            onRollStart={onRollStart ?? (() => undefined)}
+            onOpenTrade={onOpenTrade}
           />
         </div>
 
@@ -94,6 +123,7 @@ export function GameBoard({
               playersHere={playersHere}
               hopping={hopping}
               showGrid={showGrid}
+              focusOwner={focusOwner}
               onSelect={() =>
                 onSelectSquare(selectedIndex === rect.index ? null : rect.index)
               }

@@ -21,9 +21,8 @@ const unclaimed = (state: GameState) =>
     ?.index ?? null;
 
 const mineDeveloped = (state: GameState) =>
-  state.squares.find(
-    (square) => square.owner === MOCK_SEAT && square.house > 0,
-  )?.index ??
+  state.squares.find((square) => square.owner === MOCK_SEAT && square.house > 0)
+    ?.index ??
   state.squares.find((square) => square.owner === MOCK_SEAT)?.index ??
   null;
 
@@ -35,9 +34,8 @@ const rivalDeveloped = (state: GameState) =>
       !square.mortgage &&
       (square.hotel === 1 || square.house > 0),
   )?.index ??
-  state.squares.find(
-    (square) => square.owner > 0 && square.owner !== MOCK_SEAT,
-  )?.index ??
+  state.squares.find((square) => square.owner > 0 && square.owner !== MOCK_SEAT)
+    ?.index ??
   null;
 
 const taxTile = (state: GameState) =>

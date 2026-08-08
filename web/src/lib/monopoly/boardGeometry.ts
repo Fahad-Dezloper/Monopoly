@@ -20,18 +20,25 @@ export interface BoardSpec {
   left: SideSpec;
 }
 
-export const BOARD_IMAGE = "/board/board.png";
+export const BOARD_IMAGE = "/board/board.svg";
+
+export const SIDE_SPEC: SideSpec = { start: 13.8, tile: 8.0444, depth: 13.8 };
 
 export const DEFAULT_BOARD_SPEC: BoardSpec = {
-  top: { start: 13.219, tile: 8.134, depth: 14.8 },
-  right: { start: 14.291, tile: 7.679, depth: 11.164 },
-  bottom: { start: 13.169, tile: 8.134, depth: 10.686 },
-  left: { start: 14.291, tile: 7.679, depth: 11.164 },
+  top: { ...SIDE_SPEC },
+  right: { ...SIDE_SPEC },
+  bottom: { ...SIDE_SPEC },
+  left: { ...SIDE_SPEC },
 };
 
-export const BOARD_SPEC_KEY = "rv_board_spec";
+export const BOARD_SPEC_KEY = "rv_board_spec_v2";
 
-export const SIDE_KEYS: (keyof BoardSpec)[] = ["top", "right", "bottom", "left"];
+export const SIDE_KEYS: (keyof BoardSpec)[] = [
+  "top",
+  "right",
+  "bottom",
+  "left",
+];
 
 export function tileRects(spec: BoardSpec = DEFAULT_BOARD_SPEC): TileRect[] {
   const { top, right, bottom, left } = spec;

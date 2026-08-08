@@ -1,40 +1,47 @@
 "use client";
 
+import { ActionBar } from "@/components/game/ActionBar";
 import { DiceCubes } from "@/components/game/board/DiceCubes";
-import type { Player } from "@/lib/monopoly/types";
+import { LiveLog, type LogLink } from "@/components/game/rail/LiveLog";
+import type { GameAction } from "@/lib/monopoly/engine";
+import type { GameState, Player } from "@/lib/monopoly/types";
 
 interface BoardCenterProps {
+  state: GameState;
   die1: number;
   die2: number;
   diceRolled: boolean;
   diceRolling: boolean;
   currentPlayer?: Player;
+  isMyTurn: boolean;
+  canBuy: boolean;
+  canTrade?: boolean;
+  act: (action: GameAction) => void;
+  onRollStart: () => void;
+  onOpenTrade?: () => void;
+  logLinks?: LogLink[];
+  explorerFor?: (signature: string) => string;
 }
 
 export function BoardCenter({
+  state,
   die1,
   die2,
   diceRolled,
   diceRolling,
   currentPlayer,
+  isMyTurn,
+  canBuy,
+  canTrade = false,
+  act,
+  onRollStart,
+  onOpenTrade,
+  logLinks,
+  explorerFor,
 }: BoardCenterProps) {
   return (
-    <div
-      className="relative flex size-full flex-col items-center justify-center gap-[3cqi] overflow-hidden"
-    >
-
-      {/* <div className="relative -rotate-[8deg]" aria-hidden>
-        <span className="block rounded-[0.6cqi] border-[0.35cqi] border-[#d9b45a] bg-[#c8102e] px-[4cqi] py-[1.4cqi] shadow-[0_1cqi_2cqi_rgba(0,0,0,0.5)]">
-          <span className="block font-display text-[5.4cqi] leading-none tracking-[0.04em] text-white">
-            ROBINVERSE
-          </span>
-        </span>
-        <span className="mt-[1cqi] block text-center text-[1.3cqi] font-bold tracking-[0.4em] text-[#d9b45a] uppercase">
-          Property Trading Game
-        </span>
-      </div> */}
-
-      <div className="flex items-center gap-[2cqi]">
+    <div className="relative flex size-full flex-col items-center justify-center gap-[1.1cqi] overflow-hidden px-[2cqi] py-[1.2cqi]">
+      <div className="flex shrink-0 items-center gap-[2cqi]">
         <DiceCubes
           die1={die1}
           die2={die2}
@@ -44,7 +51,7 @@ export function BoardCenter({
       </div>
 
       {currentPlayer && currentPlayer.index > 0 && (
-        <div className="flex items-center gap-[1.2cqi] rounded-full border border-white/12 bg-black/40 px-[2cqi] py-[0.8cqi]">
+        <div className="flex shrink-0 items-center gap-[1.2cqi] rounded-full border border-white/12 bg-black/40 px-[2cqi] py-[0.8cqi]">
           <span
             className="size-[1.6cqi] rounded-full"
             style={{ background: currentPlayer.color }}
@@ -55,6 +62,29 @@ export function BoardCenter({
           </span>
         </div>
       )}
+
+      <div className="z-20 w-full max-w-[96%] shrink-0">
+        <ActionBar
+          state={state}
+          isMyTurn={isMyTurn}
+          canBuy={canBuy}
+          diceRolling={diceRolling}
+          canTrade={canTrade}
+          act={act}
+          onRollStart={onRollStart}
+          onOpenTrade={onOpenTrade}
+        />
+      </div>
+
+      <div className="z-20 min-h-0 w-full max-w-[92%] flex-1 basis-[26%] overflow-hidden">
+        <LiveLog
+          alerts={state.alerts}
+          players={state.players}
+          compact
+          links={logLinks}
+          explorerFor={explorerFor}
+        />
+      </div>
     </div>
   );
 }

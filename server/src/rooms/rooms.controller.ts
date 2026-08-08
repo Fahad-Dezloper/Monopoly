@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+} from "@nestjs/common";
 import type { GameAction, PlayerColor } from "../engine";
 import { RoomsService } from "./rooms.service";
 
@@ -35,7 +42,7 @@ export class RoomsController {
   @Get(":code")
   async get(@Param("code") code: string) {
     const room = await this.rooms.get(code);
-    if (!room) return { error: "not found" };
+    if (!room) throw new NotFoundException("room not found");
     return { room: this.rooms.toPublic(room) };
   }
 
@@ -105,7 +112,11 @@ export class RoomsController {
     @Param("code") code: string,
     @Body() body: { playerId: string; text: string },
   ) {
-    const room = await this.rooms.postMessage(code, body.playerId, body.text ?? "");
+    const room = await this.rooms.postMessage(
+      code,
+      body.playerId,
+      body.text ?? "",
+    );
     return { room: this.rooms.toPublic(room) };
   }
 
