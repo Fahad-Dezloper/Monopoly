@@ -7,3 +7,4 @@ bottom build
 canvas add with component of board 
 make it really good feel
 magicblock integeration for dice randomness, movement of onchain txns
+

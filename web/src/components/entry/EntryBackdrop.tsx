@@ -14,7 +14,7 @@ export function EntryBackdrop() {
       className="pointer-events-none fixed inset-0 overflow-hidden bg-shell select-none"
       aria-hidden
     >
-      <div className="size-full scale-[1.06] blur-[7px] brightness-[1.35] saturate-[1.1]">
+      <div className="size-full blur-[7px] brightness-[1.35] saturate-[1.1]">
         <GameScreen
           state={BACKDROP_STATE}
           roomCode={MOCK_ROOM_CODE}
