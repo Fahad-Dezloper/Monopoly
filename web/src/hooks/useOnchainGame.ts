@@ -45,9 +45,25 @@ function colorIndex(color: PlayerColor): number {
 
 function reason(cause: unknown, fallback: string): string {
   if (cause instanceof Error) {
-    const match = /Error Message: ([^.\n]+)/.exec(cause.message);
+    const raw = cause.message || "";
+    // Friendlier Solana / MagicBlock simulation noise
+    if (/simulation failed|Transaction simulation failed/i.test(raw)) {
+      if (/insufficient|0x1|custom program error: 0x1/i.test(raw)) {
+        return "Not enough SOL — refresh balance and try again.";
+      }
+      if (/blockhash|expired|recentBlockhash/i.test(raw)) {
+        return "Network lag — try the action again.";
+      }
+      if (/already in use|account in use/i.test(raw)) {
+        return "Table busy — wait a second and retry.";
+      }
+      const program = /Error Message: ([^.\n]+)/.exec(raw);
+      if (program) return program[1].trim();
+      return "Move rejected by the network — try again.";
+    }
+    const match = /Error Message: ([^.\n]+)/.exec(raw);
     if (match) return match[1].trim();
-    return cause.message.split("\n")[0] || fallback;
+    return raw.split("\n")[0] || fallback;
   }
   return fallback;
 }
@@ -309,21 +325,24 @@ export function useOnchainGame() {
   const sendChat = useCallback(
     async (text: string) => {
       const body = text.trim();
-      if (!body || !game) return;
-      const seat = seatOf(game, playerId);
+      if (!body) return;
+      // Local chat works in lobby and in-game (no on-chain chat account).
+      const seat = game ? seatOf(game, playerId) : null;
+      const username =
+        seat != null && game
+          ? decodeName(game.players[seat].name) || `Player ${seat}`
+          : "player";
+      const color =
+        seat != null && game
+          ? (PLAYER_COLORS[game.players[seat].color] ?? "blue")
+          : "blue";
       setMessages((prev) => [
         ...prev.slice(-60),
         {
           id: `${Date.now()}-${prev.length}`,
           playerId,
-          username:
-            seat != null
-              ? decodeName(game.players[seat].name) || `Player ${seat}`
-              : "spectator",
-          color:
-            seat != null
-              ? (PLAYER_COLORS[game.players[seat].color] ?? "black")
-              : "black",
+          username,
+          color,
           text: body,
           at: Date.now(),
         },

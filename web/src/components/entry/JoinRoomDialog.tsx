@@ -21,7 +21,19 @@ export function JoinRoomDialog({
   onBack,
 }: JoinRoomDialogProps) {
   const [name, setName] = useState("player_1");
-  const [color, setColor] = useState<PlayerColor>("blue");
+  const [color, setColor] = useState<PlayerColor>(() => {
+    const pool: PlayerColor[] = [
+      "blue",
+      "red",
+      "lime",
+      "green",
+      "aqua",
+      "orange",
+      "purple",
+      "fuchsia",
+    ];
+    return pool[Math.floor(Math.random() * pool.length)]!;
+  });
   const [code, setCode] = useState(initialCode ?? "");
   const [isWalletFunded, setIsWalletFunded] = useState<boolean>(true);
 

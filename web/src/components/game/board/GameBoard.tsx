@@ -9,6 +9,7 @@ import {
   tileRects,
   type BoardSpec,
 } from "@/lib/monopoly/boardGeometry";
+import type { GameAction } from "@/lib/monopoly/engine";
 import type { GameState, Player } from "@/lib/monopoly/types";
 
 interface GameBoardProps {
@@ -20,8 +21,13 @@ interface GameBoardProps {
   hopping?: Record<number, number>;
   spec?: BoardSpec;
   showGrid?: boolean;
-  /** Highlight this player's owned tiles; dim others. */
   focusOwner?: number | null;
+  isMyTurn?: boolean;
+  canBuy?: boolean;
+  canTrade?: boolean;
+  act?: (action: GameAction) => void;
+  onRollStart?: () => void;
+  onOpenTrade?: () => void;
 }
 
 export function GameBoard({
@@ -34,6 +40,12 @@ export function GameBoard({
   spec = DEFAULT_BOARD_SPEC,
   showGrid = false,
   focusOwner = null,
+  isMyTurn = false,
+  canBuy = false,
+  canTrade = false,
+  act,
+  onRollStart,
+  onOpenTrade,
 }: GameBoardProps) {
   const rects = tileRects(spec);
   const center = centerRect(spec);
@@ -61,7 +73,7 @@ export function GameBoard({
         />
 
         <div
-          className="absolute"
+          className="absolute z-30"
           style={{
             left: `${center.left}%`,
             top: `${center.top}%`,
@@ -70,11 +82,18 @@ export function GameBoard({
           }}
         >
           <BoardCenter
+            state={state}
             die1={state.die1}
             die2={state.die2}
             diceRolled={state.diceRolled}
             diceRolling={diceRolling}
             currentPlayer={state.players[state.turn]}
+            isMyTurn={isMyTurn}
+            canBuy={canBuy}
+            canTrade={canTrade}
+            act={act ?? (() => undefined)}
+            onRollStart={onRollStart ?? (() => undefined)}
+            onOpenTrade={onOpenTrade}
           />
         </div>
 

@@ -74,6 +74,8 @@ export function useGameFx(state: GameState | null | undefined) {
     Record<number, number>
   >({});
   const [hopping, setHopping] = useState<Record<number, number>>({});
+  const [tokenMoving, setTokenMoving] = useState(false);
+  const moveCount = useRef(0);
 
   useEffect(() => {
     const unlock = () => unlockAudio();
@@ -159,6 +161,8 @@ export function useGameFx(state: GameState | null | undefined) {
 
       const waitForDice = diceJustRolled && player.index === state.turn;
       moveLock.current.add(player.index);
+      moveCount.current += 1;
+      setTokenMoving(true);
 
       void (async () => {
         setDisplayPositions((positions) => ({
@@ -186,11 +190,13 @@ export function useGameFx(state: GameState | null | undefined) {
           return updated;
         });
         moveLock.current.delete(player.index);
+        moveCount.current = Math.max(0, moveCount.current - 1);
+        if (moveCount.current === 0) setTokenMoving(false);
       })();
     }
 
     prevRef.current = next;
   }, [state]);
 
-  return { moneyFlashes, displayPositions, hopping };
+  return { moneyFlashes, displayPositions, hopping, tokenMoving };
 }

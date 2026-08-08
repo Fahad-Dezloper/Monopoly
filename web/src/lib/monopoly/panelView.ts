@@ -59,8 +59,12 @@ export function resolvePanelView({
   const lookingAtMyTile =
     !!standingOn && (!inspecting || inspecting.index === standingOn.index);
 
+  const declined =
+    typeof state.landedMessage === "string" &&
+    state.landedMessage.toLowerCase().includes("declined");
+
   if (isMyTurn && state.diceRolled && standingOn && lookingAtMyTile && me) {
-    if (isBuyable(standingOn) && standingOn.owner === 0) {
+    if (isBuyable(standingOn) && standingOn.owner === 0 && !declined) {
       const price = standingOn.price;
       return me.money >= price
         ? {

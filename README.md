@@ -1,8 +1,10 @@
-# Robinverse
+# Solana City
 
-Multiplayer property-trading game (Monopoly-style) with a NestJS game server and a Next.js client.
+Multiplayer **onchain property-trading game** (Monopoly-style) branded as **Solana City**. NestJS game server + Next.js client, with an optional Solana / MagicBlock program.
 
 The board is themed around real cities by country (India, China, Brazil, Russia, Germany, Australia, UK, USA), driven by `monopoly_board_game.json`.
+
+**Product brand (web):** name, SEO, logo → `web/src/lib/brand.ts`, assets in `web/public/logo/`.
 
 | Folder               | Role                                                                                             |
 | -------------------- | ------------------------------------------------------------------------------------------------ |

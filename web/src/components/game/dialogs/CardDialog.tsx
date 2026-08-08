@@ -11,28 +11,46 @@ import type { GameState } from "@/lib/monopoly/types";
 
 interface CardDialogProps {
   state: GameState;
+  mySeat: number | null;
   act: (action: GameAction) => void;
+  /** Hold the modal closed until the token finishes hopping. */
+  ready?: boolean;
 }
 
-export function CardDialog({ state, act }: CardDialogProps) {
+export function CardDialog({
+  state,
+  mySeat,
+  act,
+  ready = true,
+}: CardDialogProps) {
   const [dismissed, setDismissed] = useState<string | null>(null);
   const popup = state.popup;
-  if (!popup?.open) return null;
+
+  if (!ready || !popup?.open) return null;
 
   const key = popup.resolveId ?? popup.message;
   if (dismissed === key) return null;
 
   const actor = state.players[state.turn];
-  const mine = !!actor?.human;
+  // Prefer seat match — `human` is often false on-chain.
+  const mine = mySeat != null ? state.turn === mySeat : !!actor?.human;
   const isFortune = popup.title?.toLowerCase() === "fortune";
-  const accent = isFortune ? "#C589FA" : popup.title ? "#86D6F7" : "#6c5ce7";
+  const isTreasury =
+    popup.title?.toLowerCase() === "treasury" ||
+    popup.title?.toLowerCase() === "community chest";
+  const accent = isFortune ? "#C589FA" : isTreasury ? "#38bdf8" : "#7c3aed";
 
   return (
     <Dialog
-      eyebrow={mine ? "Your draw" : `${actor?.name}'s draw`}
+      eyebrow={mine ? "Your turn" : `${actor?.name ?? "Player"}'s event`}
       title={popup.title ?? "Board event"}
-      subtitle={mine ? undefined : "You are watching this one play out"}
+      subtitle={
+        mine
+          ? "Read it, then continue."
+          : "Watching — they must confirm before play continues."
+      }
       accent={accent}
+      size="sm"
       onClose={mine ? undefined : () => setDismissed(key)}
       closeLabel="Dismiss"
       footer={
@@ -72,17 +90,19 @@ export function CardDialog({ state, act }: CardDialogProps) {
             className={dialogGhost}
             onClick={() => setDismissed(key)}
           >
-            Dismiss
+            Close preview
           </button>
         )
       }
     >
-      <p className="text-[15px] leading-relaxed font-medium text-slate-800">
-        {popup.message}
-      </p>
+      <div className="rounded-2xl border border-[#e9e2ff] bg-gradient-to-br from-[#f8f6ff] to-white p-4 shadow-sm">
+        <p className="text-[15px] leading-relaxed font-semibold text-slate-800">
+          {popup.message}
+        </p>
+      </div>
       {!mine && (
-        <p className="mt-3 text-[12px] text-slate-500">
-          {actor?.name} has to confirm this before the turn continues.
+        <p className="mt-3 text-[12px] font-medium text-slate-500">
+          Waiting on {actor?.name ?? "the current player"} to confirm.
         </p>
       )}
     </Dialog>

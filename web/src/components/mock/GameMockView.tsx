@@ -1,17 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ActionBar } from "@/components/game/ActionBar";
 import { GameBoard } from "@/components/game/board/GameBoard";
+import { AuctionDialog } from "@/components/game/dialogs/AuctionDialog";
+import { CardDialog } from "@/components/game/dialogs/CardDialog";
+import { RulesDialog } from "@/components/game/dialogs/RulesDialog";
+import { StatsDialog } from "@/components/game/dialogs/StatsDialog";
+import { TradeDialog } from "@/components/game/dialogs/TradeDialog";
 import { GameTopBar } from "@/components/game/GameTopBar";
 import { PropertyPanel } from "@/components/game/property/PropertyPanel";
 import { LeftRail } from "@/components/game/rail/LeftRail";
-import { LiveLog } from "@/components/game/rail/LiveLog";
 import { RightRail } from "@/components/game/rail/RightRail";
 import type { MockFlag } from "@/components/mock/mockRegistry";
 import {
+  createAuctionGameState,
+  createCardGameState,
   createEmptyGameState,
+  createGameOverState,
   createMockGameState,
+  createTradeGameState,
   MOCK_SEAT,
 } from "@/lib/mock/gameState";
 import { BoardCalibrator } from "@/components/mock/BoardCalibrator";
@@ -101,7 +108,6 @@ export function GameMockView({ flags, onAction }: GameMockViewProps) {
       )}
 
       <main className="grid min-h-0 grid-cols-[220px_minmax(0,1fr)_260px] gap-2 overflow-hidden max-[1080px]:grid-cols-[minmax(0,1fr)]">
-        {/* LEFT */}
         <div className="min-h-0 max-[1080px]:order-2">
           {on("rail") && (
             <LeftRail
@@ -114,7 +120,6 @@ export function GameMockView({ flags, onAction }: GameMockViewProps) {
           )}
         </div>
 
-        {/* CENTER */}
         <section className="flex min-h-0 flex-col gap-1.5 max-[1080px]:order-1">
           <div className="flex shrink-0 items-center gap-2">
             <button
@@ -147,6 +152,10 @@ export function GameMockView({ flags, onAction }: GameMockViewProps) {
                 displayPositions={{}}
                 hopping={{}}
                 focusOwner={focusSeat}
+                isMyTurn={isMyTurn}
+                canBuy={false}
+                act={onAction}
+                onRollStart={() => undefined}
                 onSelectSquare={(index) => {
                   setSelectedIndex(index);
                   if (index != null)
@@ -156,27 +165,8 @@ export function GameMockView({ flags, onAction }: GameMockViewProps) {
             )}
           </div>
           {calibrating && <BoardCalibrator spec={spec} onChange={setSpec} />}
-
-          {on("board") && (
-            <ActionBar
-              state={actionState}
-              isMyTurn={isMyTurn}
-              canBuy={false}
-              diceRolling={false}
-              act={onAction}
-              onRollStart={() => undefined}
-            />
-          )}
-
-          {on("rail") && (
-            <LiveLog
-              alerts={railState.alerts}
-              players={railState.players}
-            />
-          )}
         </section>
 
-        {/* RIGHT */}
         <div className="min-h-0 max-[1080px]:order-3">
           {showDeed ? (
             <PropertyPanel
@@ -207,6 +197,54 @@ export function GameMockView({ flags, onAction }: GameMockViewProps) {
           )}
         </div>
       </main>
+
+      {on("auction") && (
+        <AuctionDialog
+          state={createAuctionGameState()}
+          act={onAction}
+          onShowDeed={setSelectedIndex}
+        />
+      )}
+
+      {on("card") && (
+        <CardDialog
+          state={createCardGameState()}
+          mySeat={MOCK_SEAT}
+          act={onAction}
+        />
+      )}
+
+      {on("trade") && (
+        <TradeDialog
+          state={createTradeGameState()}
+          mySeat={MOCK_SEAT}
+          act={onAction}
+          onClose={() => onAction({ type: "CANCEL_TRADE" })}
+        />
+      )}
+
+      {on("stats") && (
+        <StatsDialog
+          state={{ ...createMockGameState(), showStats: true }}
+          act={onAction}
+          onShowDeed={setSelectedIndex}
+        />
+      )}
+
+      {on("rules") && (
+        <RulesDialog open onClose={() => onAction({ type: "TOGGLE_STATS" })} />
+      )}
+
+      {on("gameover") &&
+        (() => {
+          const over = createGameOverState();
+          const winner = over.players[over.winner ?? 1];
+          return (
+            <div className="fixed bottom-5.5 left-1/2 z-70 -translate-x-1/2 rounded-full bg-accent px-5.5 py-3 text-[14px] font-bold text-white shadow-panel">
+              🏆 {winner?.name} wins — last player standing
+            </div>
+          );
+        })()}
     </div>
   );
 }

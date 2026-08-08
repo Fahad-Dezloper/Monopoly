@@ -264,6 +264,8 @@ function beginTurn(state: GameState): void {
   state.nextButtonLabel = "Roll Dice";
   state.nextButtonTitle = "Roll the dice and move your token accordingly.";
   state.selectedProperty = -1;
+  state.popup = null;
+  state.card = null;
   state.turnDeadlineAt = Date.now() + TURN_LIMIT_MS;
 
   addAlert(state, `It is ${p.name}'s turn.`);
@@ -1050,8 +1052,21 @@ export function gameReducer(prev: GameState, action: GameAction): GameState {
       break;
     }
 
-    case "DECLINE_BUY":
+    case "DECLINE_BUY": {
+      const sq = state.squares[p.position];
+      if (sq.price > 0 && sq.owner === 0) {
+        if (!state.auctionQueue.includes(p.position)) {
+          state.auctionQueue.push(p.position);
+        }
+        addAlert(state, `${p.name} declined to buy ${sq.name}.`);
+        state.landedMessage = `You declined ${sq.name}.`;
+        // Extra roll pending → keep turn; otherwise open auction / next turn.
+        if (state.doubleCount === 0) {
+          endTurnOrAuction(state);
+        }
+      }
       break;
+    }
 
     case "PAY_JAIL_FINE": {
       pay(state, state.turn, GAME_META.jail_fine, 0);

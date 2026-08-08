@@ -3,15 +3,18 @@
 import { useEffect, useRef } from "react";
 import { parseActivity } from "@/components/game/rail/activityFormat";
 import type { Player } from "@/lib/monopoly/types";
+import { cx } from "@/lib/ui";
 
 const MAX_LINES = 40;
 
 interface LiveLogProps {
   alerts: string[];
   players: Player[];
+  /** Smaller glass panel for board center. */
+  compact?: boolean;
 }
 
-export function LiveLog({ alerts, players }: LiveLogProps) {
+export function LiveLog({ alerts, players, compact = false }: LiveLogProps) {
   const feedRef = useRef<HTMLDivElement>(null);
   const lines = alerts.slice(-MAX_LINES);
 
@@ -21,24 +24,36 @@ export function LiveLog({ alerts, players }: LiveLogProps) {
   }, [alerts.length]);
 
   return (
-    <div className="relative flex h-[120px] min-h-[100px] max-h-[140px] flex-col overflow-hidden rounded-2xl border border-[#e9e2ff] bg-white/90 shadow-sm">
-      {/* Fade top */}
+    <div
+      className={cx("relative flex h-full min-h-0 flex-col overflow-hidden")}
+    >
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-10 h-6 bg-gradient-to-b from-white to-transparent"
+        className={cx("pointer-events-none absolute inset-x-0 top-0 z-10 h-5")}
         aria-hidden
       />
-      {/* Fade bottom */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-8 bg-gradient-to-t from-white to-transparent"
+        className={cx(
+          "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-6",
+        )}
         aria-hidden
       />
 
       <div
         ref={feedRef}
-        className="scrollless flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-3"
+        className={cx(
+          "scrollless flex flex-1 flex-col gap-1 overflow-y-auto",
+          compact ? "px-[1.4cqi] py-[1.2cqi]" : "px-3 py-3",
+        )}
       >
         {lines.length === 0 && (
-          <div className="py-2 text-center text-[11px] text-slate-400">
+          <div
+            className={cx(
+              "py-1 text-center",
+              compact
+                ? "text-[1.1cqi] text-white/45"
+                : "text-[11px] text-slate-400",
+            )}
+          >
             Game log will appear here…
           </div>
         )}
@@ -49,7 +64,12 @@ export function LiveLog({ alerts, players }: LiveLogProps) {
           return (
             <div
               key={`${index}-${raw.slice(0, 24)}`}
-              className="flex gap-2 text-[11.5px] leading-snug text-slate-600"
+              className={cx(
+                "flex gap-1.5 w-full text-center justify-center items-center leading-snug",
+                compact
+                  ? "text-base text-white/80"
+                  : "text-base text-slate-600",
+              )}
               style={{ opacity }}
             >
               <span className="shrink-0" aria-hidden>
@@ -57,7 +77,12 @@ export function LiveLog({ alerts, players }: LiveLogProps) {
               </span>
               <span className="min-w-0 wrap-break-word">
                 {player && (
-                  <strong className="font-bold text-slate-800">
+                  <strong
+                    className={cx(
+                      "font-bold",
+                      compact ? "text-white" : "text-slate-800",
+                    )}
+                  >
                     {player.name}
                   </strong>
                 )}

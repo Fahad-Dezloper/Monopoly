@@ -57,10 +57,10 @@ export function LandedBuyView({
           <button
             type="button"
             className={cx(btn, "w-full")}
-            onClick={() => act({ type: "NEXT" })}
+            onClick={() => act({ type: "DECLINE_BUY" })}
             title="Passing sends this property to auction"
           >
-            Pass — send to auction
+            Decline — send to auction
           </button>
         </div>
       }

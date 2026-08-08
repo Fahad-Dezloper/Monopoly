@@ -161,7 +161,10 @@ export class RoomsService implements OnModuleInit, OnModuleDestroy {
         {
           id: input.hostId,
           username: input.username,
-          color: input.color ?? "blue",
+          color: (input.color &&
+          (DEFAULT_COLORS as readonly string[]).includes(input.color)
+            ? input.color
+            : DEFAULT_COLORS[0]) as PlayerColor,
           isHost: true,
           ready: true,
           joinedAt: Date.now(),

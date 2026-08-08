@@ -23,7 +23,19 @@ export function CreateRoomDialog({
   onBack,
 }: CreateRoomDialogProps) {
   const [name, setName] = useState("player_1");
-  const [color, setColor] = useState<PlayerColor>("blue");
+  const [color, setColor] = useState<PlayerColor>(() => {
+    const pool: PlayerColor[] = [
+      "yellow",
+      "blue",
+      "red",
+      "lime",
+      "green",
+      "aqua",
+      "orange",
+      "purple",
+    ];
+    return pool[Math.floor(Math.random() * pool.length)]!;
+  });
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [isWalletFunded, setIsWalletFunded] = useState<boolean>(true);
 

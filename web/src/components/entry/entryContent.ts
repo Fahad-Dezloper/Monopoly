@@ -1,3 +1,5 @@
+import { BRAND } from "@/lib/brand";
+
 export interface EntryPoint {
   title: string;
   body: string;
@@ -5,21 +7,26 @@ export interface EntryPoint {
 
 const ON_CHAIN = process.env.NEXT_PUBLIC_CHAIN === "1";
 
+export const GAME_NAME = BRAND.name;
+
 export const GAME_TAGLINE =
   "Buy streets, build houses, collect rent — and bankrupt everyone else at the table.";
 
+export const GAME_ABOUT =
+  "Solana City is a multiplayer property-trading board game set on real cities around the world. Invite friends with a room code, roll dice, claim streets, build houses and hotels, trade deals, and be the last player standing.";
+
 const CHAIN_POINTS: EntryPoint[] = [
   {
-    title: "The rules are a Solana program",
-    body: "Every roll, buy and trade is a signed transaction on a MagicBlock rollup — instant and free to play.",
+    title: "Fully onchain rules",
+    body: "Every roll, buy and trade is a signed Solana transaction on a MagicBlock rollup — fast, free to play on devnet, and hard to fake.",
   },
   {
-    title: "Dice nobody can fake",
-    body: "Rolls come from a verifiable randomness oracle, not from a player's browser or a server you have to trust.",
+    title: "Dice nobody can cheat",
+    body: "Rolls come from a verifiable randomness oracle, not from a browser or a trusted server.",
   },
   {
     title: "2–8 players, no sign-up",
-    body: "Share a six-character code. Your browser keeps a throwaway key — it needs a little devnet SOL to open a table.",
+    body: "Share a six-character code. Your browser keeps a throwaway wallet — a little devnet SOL opens the table.",
   },
 ];
 

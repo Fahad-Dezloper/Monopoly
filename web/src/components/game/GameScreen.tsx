@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ActionBar } from "@/components/game/ActionBar";
 import { GameBoard } from "@/components/game/board/GameBoard";
 import { GameTopBar } from "@/components/game/GameTopBar";
 import { AuctionDialog } from "@/components/game/dialogs/AuctionDialog";
@@ -11,7 +10,6 @@ import { StatsDialog } from "@/components/game/dialogs/StatsDialog";
 import { TradeDialog } from "@/components/game/dialogs/TradeDialog";
 import { PropertyPanel } from "@/components/game/property/PropertyPanel";
 import { LeftRail } from "@/components/game/rail/LeftRail";
-import { LiveLog } from "@/components/game/rail/LiveLog";
 import { RightRail } from "@/components/game/rail/RightRail";
 import { useDiceRoll } from "@/hooks/useDiceRoll";
 import { useGameFx } from "@/hooks/useGameFx";
@@ -20,6 +18,7 @@ import type { ChatMessage } from "@/lib/api/types";
 import type { GameAction } from "@/lib/monopoly/engine";
 import { isMuted, setMuted, unlockAudio } from "@/lib/monopoly/sounds";
 import { loadBoardSpec } from "@/lib/monopoly/boardGeometry";
+import { resolvePanelView } from "@/lib/monopoly/panelView";
 import { turnNumber } from "@/lib/monopoly/stats";
 import type { GameState } from "@/lib/monopoly/types";
 import { errorBox } from "@/lib/ui";
@@ -62,7 +61,7 @@ export function GameScreen({
   const lastDiceKey = useRef("");
   const localRollPending = useRef(false);
 
-  const { displayPositions, hopping } = useGameFx(state);
+  const { displayPositions, hopping, tokenMoving } = useGameFx(state);
   const remaining = useTurnClock(state.turnDeadlineAt);
 
   useEffect(() => {
@@ -88,13 +87,21 @@ export function GameScreen({
   const showTrade = !!state.trade && !tradeDismissed;
   const current = state.players[state.turn];
   const landedSquare = state.squares[current?.position ?? 0];
+  const declined =
+    typeof state.landedMessage === "string" &&
+    state.landedMessage.toLowerCase().includes("declined");
   const canBuy =
     isMyTurn &&
     !!current &&
     state.diceRolled &&
+    !declined &&
     landedSquare?.price > 0 &&
     landedSquare?.owner === 0 &&
-    current.money >= landedSquare.price;
+    current.money >= landedSquare.price &&
+    !tokenMoving;
+
+  const canTrade =
+    isMyTurn && state.phase !== "auction" && state.phase !== "game_over";
 
   const seatedState: GameState = {
     ...state,
@@ -129,9 +136,24 @@ export function GameScreen({
     setSoundOff(next);
   };
 
-  // When a tile is selected, still show property panel overlay on right via selectedIndex
-  // Right rail always visible; property detail can replace board state when selected
-  const showDeed = selectedIndex != null;
+  // Don't flash event modals / land panels until the token finishes hopping.
+  const modalReady = !tokenMoving && !diceRolling;
+
+  const panelView = resolvePanelView({
+    state,
+    mySeat,
+    isMyTurn: isMyTurn && modalReady,
+    selectedIndex: modalReady ? selectedIndex : null,
+  });
+
+  // Prefer game-state views (buy/rent/card/auction/special) over idle rail.
+  // Also show deed when a tile is selected (after move settles).
+  const showPanel =
+    panelView.kind !== "idle" ||
+    (selectedIndex != null && modalReady) ||
+    state.phase === "auction" ||
+    !!state.trade ||
+    state.phase === "game_over";
 
   return (
     <div className="grid h-dvh grid-rows-[auto_minmax(0,1fr)] gap-2 overflow-hidden bg-[#f5f3ff] p-2.5 font-sans text-slate-800">
@@ -149,7 +171,6 @@ export function GameScreen({
       />
 
       <main className="grid min-h-0 grid-cols-[220px_minmax(0,1fr)_260px] gap-2 max-[1080px]:grid-cols-[minmax(0,1fr)]">
-        {/* LEFT: money + chat */}
         <div className="min-h-0 max-[1080px]:order-2 max-[1080px]:max-h-[40vh]">
           <LeftRail
             state={state}
@@ -160,7 +181,6 @@ export function GameScreen({
           />
         </div>
 
-        {/* CENTER: board + actions + live log */}
         <section className="flex min-h-0 flex-col gap-1.5 max-[1080px]:order-1">
           {error && <div className={errorBox}>{error}</div>}
 
@@ -173,6 +193,15 @@ export function GameScreen({
               displayPositions={displayPositions}
               hopping={hopping}
               focusOwner={focusSeat}
+              isMyTurn={isMyTurn}
+              canBuy={!!canBuy}
+              canTrade={canTrade}
+              act={act}
+              onOpenTrade={openTrade}
+              onRollStart={() => {
+                localRollPending.current = true;
+                startRoll();
+              }}
               onSelectSquare={(index) => {
                 setSelectedIndex(index);
                 if (index != null && isMyTurn) {
@@ -181,36 +210,19 @@ export function GameScreen({
               }}
             />
           </div>
-
-          <ActionBar
-            state={state}
-            isMyTurn={isMyTurn}
-            canBuy={!!canBuy}
-            diceRolling={diceRolling}
-            act={act}
-            onRollStart={() => {
-              localRollPending.current = true;
-              startRoll();
-            }}
-          />
-
-          <LiveLog alerts={state.alerts} players={state.players} />
         </section>
 
-        {/* RIGHT: board state / players / my stuff — or deed when selected */}
         <div className="min-h-0 max-[1080px]:order-3 max-[1080px]:max-h-[45vh]">
-          {showDeed ? (
-            <div className="flex h-full min-h-0 flex-col gap-2">
-              <PropertyPanel
-                state={state}
-                mySeat={mySeat}
-                isMyTurn={isMyTurn}
-                selectedIndex={selectedIndex}
-                act={act}
-                onOpenTrade={openTrade}
-                onClose={() => setSelectedIndex(null)}
-              />
-            </div>
+          {showPanel ? (
+            <PropertyPanel
+              state={state}
+              mySeat={mySeat}
+              isMyTurn={isMyTurn}
+              selectedIndex={selectedIndex}
+              act={act}
+              onOpenTrade={openTrade}
+              onClose={() => setSelectedIndex(null)}
+            />
           ) : (
             <RightRail
               state={state}
@@ -234,7 +246,12 @@ export function GameScreen({
           onShowDeed={setSelectedIndex}
         />
       ) : (
-        <CardDialog state={seatedState} act={act} />
+        <CardDialog
+          state={seatedState}
+          mySeat={mySeat}
+          act={act}
+          ready={modalReady}
+        />
       )}
 
       <StatsDialog state={state} act={act} onShowDeed={setSelectedIndex} />

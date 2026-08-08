@@ -55,7 +55,9 @@ export function PanelShell({
             {title}
           </div>
           {subtitle && (
-            <div className="mt-0.5 text-[11.5px] text-slate-500">{subtitle}</div>
+            <div className="mt-0.5 text-[11.5px] text-slate-500">
+              {subtitle}
+            </div>
           )}
         </div>
         {onClose && (

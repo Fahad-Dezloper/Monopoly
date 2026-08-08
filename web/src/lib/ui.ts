@@ -51,5 +51,4 @@ export const btn =
   "inline-flex items-center justify-center gap-1.5 rounded-full border border-[#e9e2ff] bg-white px-3.5 py-2.25 text-[13px] font-semibold text-slate-700 shadow-sm transition-colors hover:not-disabled:border-[#7c3aed]/35 hover:not-disabled:bg-[#f8f6ff] disabled:cursor-not-allowed disabled:opacity-40";
 
 /** Game shell background — always light lavender-white */
-export const gameShell =
-  "bg-[#f5f3ff] text-slate-800";
+export const gameShell = "bg-[#f5f3ff] text-slate-800";

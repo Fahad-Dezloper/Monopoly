@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { chain as getChain } from "@/lib/chain/client";
 import { MIN_BALANCE_LAMPORTS } from "@/lib/chain/burner";
@@ -15,24 +15,35 @@ export function DevnetWalletCard({ onFundedChange }: DevnetWalletCardProps) {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
+  // Held in a ref so a parent passing an inline callback does not restart the
+  // polling interval on every one of its renders.
+  const onFundedRef = useRef(onFundedChange);
+  useEffect(() => {
+    onFundedRef.current = onFundedChange;
+  }, [onFundedChange]);
+
   const fetchBalance = useCallback(async () => {
     try {
       const c = getChain();
-      const addr = c.wallet.toBase58();
-      setAddress(addr);
       const balLamports = await c.base.getBalance(c.wallet);
-      const balSol = balLamports / LAMPORTS_PER_SOL;
-      setBalance(balSol);
-      const isFunded = balLamports >= MIN_BALANCE_LAMPORTS;
-      onFundedChange?.(isFunded);
+      // Read after the await, never during render: on the server the burner is
+      // a throwaway key, so deriving it while rendering would hydrate to a
+      // different address than the browser's.
+      setAddress(c.wallet.toBase58());
+      setBalance(balLamports / LAMPORTS_PER_SOL);
+      onFundedRef.current?.(balLamports >= MIN_BALANCE_LAMPORTS);
     } catch (e) {
       console.warn("Failed to fetch devnet balance", e);
     }
-  }, [onFundedChange]);
+  }, []);
 
   useEffect(() => {
-    fetchBalance();
-    const timer = setInterval(fetchBalance, 4000);
+    // fetchBalance is async: every setState in it runs after `await
+    // getBalance()`, so nothing is set synchronously. The rule cannot see
+    // through the promise.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchBalance();
+    const timer = setInterval(() => void fetchBalance(), 4000);
     return () => clearInterval(timer);
   }, [fetchBalance]);
 
@@ -56,7 +67,8 @@ export function DevnetWalletCard({ onFundedChange }: DevnetWalletCardProps) {
     } catch {}
   };
 
-  const isFunded = balance !== null && balance >= 0.03;
+  const isFunded =
+    balance !== null && balance >= MIN_BALANCE_LAMPORTS / LAMPORTS_PER_SOL;
   const shortAddr = address
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
     : "Loading...";

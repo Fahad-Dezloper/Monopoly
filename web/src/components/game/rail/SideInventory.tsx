@@ -1,6 +1,6 @@
 "use client";
 
-import type { HeldCard } from "@/components/game/dock/CardHand";
+import type { HeldCard } from "@/components/game/rail/CardHand";
 import { money } from "@/lib/monopoly/panelView";
 import type { GameAction } from "@/lib/monopoly/engine";
 import {

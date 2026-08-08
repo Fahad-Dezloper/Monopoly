@@ -69,8 +69,7 @@ export function BoardOverlayTile({
         "hover:shadow-[inset_0_0_0_2px_rgba(255,255,255,0.65)]",
         active && "shadow-[inset_0_0_0_3px_var(--color-ink)]",
         selected && "shadow-[inset_0_0_0_3px_var(--color-accent)]",
-        isFocusOwned &&
-          "z-10 shadow-[inset_0_0_0_3px_rgba(124,58,237,0.85)]",
+        isFocusOwned && "z-10 shadow-[inset_0_0_0_3px_rgba(124,58,237,0.85)]",
         isFocusOther && "opacity-30 grayscale",
         square.mortgage && !focusing && "grayscale-[0.35]",
         showGrid && "shadow-[inset_0_0_0_1px_rgba(255,0,128,0.9)]",

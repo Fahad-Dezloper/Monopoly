@@ -57,16 +57,8 @@ export function IdleView({ state, mySeat }: IdleViewProps) {
         </div>
         <div className="grid grid-cols-3 gap-2">
           <StatBadge label="Unclaimed" value={unowned} tone="purple" />
-          <StatBadge
-            label="Houses"
-            value={state.housesAvailable}
-            tone="cyan"
-          />
-          <StatBadge
-            label="Hotels"
-            value={state.hotelsAvailable}
-            tone="pink"
-          />
+          <StatBadge label="Houses" value={state.housesAvailable} tone="cyan" />
+          <StatBadge label="Hotels" value={state.hotelsAvailable} tone="pink" />
         </div>
       </div>
 

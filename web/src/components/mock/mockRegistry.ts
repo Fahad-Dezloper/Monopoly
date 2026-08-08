@@ -16,12 +16,6 @@ export const MOCK_REGISTRY: Record<MockScreen, MockEntry[]> = {
       group: "Shell",
     },
     {
-      key: "banner",
-      label: "TurnBanner",
-      file: "game/TurnBanner.tsx",
-      group: "Shell",
-    },
-    {
       key: "rail",
       label: "LeftRail (money + chat)",
       file: "game/rail/LeftRail.tsx",
@@ -32,12 +26,6 @@ export const MOCK_REGISTRY: Record<MockScreen, MockEntry[]> = {
       label: "GameBoard",
       file: "game/board/GameBoard.tsx",
       group: "Board",
-    },
-    {
-      key: "actionbar",
-      label: "ActionBar",
-      file: "game/ActionBar.tsx",
-      group: "Center",
     },
     {
       key: "panel",
