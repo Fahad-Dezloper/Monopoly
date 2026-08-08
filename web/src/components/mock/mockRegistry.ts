@@ -23,8 +23,8 @@ export const MOCK_REGISTRY: Record<MockScreen, MockEntry[]> = {
     },
     {
       key: "rail",
-      label: "PlayerRail",
-      file: "game/rail/PlayerRail.tsx",
+      label: "LeftRail (money + chat)",
+      file: "game/rail/LeftRail.tsx",
       group: "Left rail",
     },
     {
@@ -37,19 +37,13 @@ export const MOCK_REGISTRY: Record<MockScreen, MockEntry[]> = {
       key: "actionbar",
       label: "ActionBar",
       file: "game/ActionBar.tsx",
-      group: "Shell",
+      group: "Center",
     },
     {
       key: "panel",
-      label: "PropertyPanel",
-      file: "game/property/PropertyPanel.tsx",
+      label: "RightRail",
+      file: "game/rail/RightRail.tsx",
       group: "Right rail",
-    },
-    {
-      key: "dock",
-      label: "GameDock",
-      file: "game/dock/GameDock.tsx",
-      group: "Dock",
     },
     {
       key: "auction",

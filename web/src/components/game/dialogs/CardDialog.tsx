@@ -77,11 +77,11 @@ export function CardDialog({ state, act }: CardDialogProps) {
         )
       }
     >
-      <p className="text-[15px] leading-relaxed font-medium text-body">
+      <p className="text-[15px] leading-relaxed font-medium text-slate-800">
         {popup.message}
       </p>
       {!mine && (
-        <p className="mt-3 text-[12px] text-dim">
+        <p className="mt-3 text-[12px] text-slate-500">
           {actor?.name} has to confirm this before the turn continues.
         </p>
       )}

@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ActionBar } from "@/components/game/ActionBar";
 import { GameBoard } from "@/components/game/board/GameBoard";
-import { GameDock } from "@/components/game/dock/GameDock";
 import { GameTopBar } from "@/components/game/GameTopBar";
 import { PropertyPanel } from "@/components/game/property/PropertyPanel";
+import { LeftRail } from "@/components/game/rail/LeftRail";
+import { LiveLog } from "@/components/game/rail/LiveLog";
+import { RightRail } from "@/components/game/rail/RightRail";
 import type { MockFlag } from "@/components/mock/mockRegistry";
-import type { MoneyFlash } from "@/hooks/useGameFx";
 import {
   createEmptyGameState,
   createMockGameState,
@@ -22,13 +24,6 @@ import {
 } from "@/lib/monopoly/boardGeometry";
 import { MOCK_MESSAGES, MOCK_PLAYER_ID, MOCK_ROOM_CODE } from "@/lib/mock/room";
 import type { GameAction } from "@/lib/monopoly/engine";
-import { PlayerStandings } from "../game/rail/PlayerStandings";
-import { RailChatPanel } from "../game/rail/RailChatPanel";
-
-const MOCK_FLASHES: Record<number, MoneyFlash> = {
-  1: { delta: 220, id: 1 },
-  2: { delta: -220, id: 2 },
-};
 
 interface GameMockViewProps {
   flags: Record<string, MockFlag>;
@@ -36,7 +31,8 @@ interface GameMockViewProps {
 }
 
 export function GameMockView({ flags, onAction }: GameMockViewProps) {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(6);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [focusSeat, setFocusSeat] = useState<number | null>(null);
   const [scenarioKey] = useState(PANEL_SCENARIOS[0].key);
   const [spec, setSpec] = useState<BoardSpec>(loadBoardSpec);
   const [calibrating, setCalibrating] = useState(false);
@@ -55,9 +51,10 @@ export function GameMockView({ flags, onAction }: GameMockViewProps) {
   const mocked = (key: string) => flags[key]?.mock ?? false;
   const stateFor = (key: string) => (mocked(key) ? filled : empty);
 
-  const railState = stateFor("rail");
   const boardState = stateFor("board");
-  const dockState = stateFor("dock");
+  const railState = stateFor("rail");
+  const actionState = mocked("board") ? filled : empty;
+  const isMyTurn = mocked("board") && actionState.turn === MOCK_SEAT;
 
   useEffect(() => {
     if (!calibrating) return;
@@ -86,67 +83,53 @@ export function GameMockView({ flags, onAction }: GameMockViewProps) {
     };
   }, [calibrating, spec]);
 
-  return (
-    <div className="grid h-screen grid-rows-[auto_minmax(0,1fr)_auto] gap-1.5 overflow-hidden bg-shell p-2.5 font-sans text-body">
-      <div className="w-full h-20 bg-black">
-        {on("topbar") && (
-          <GameTopBar
-            roomCode={mocked("topbar") ? MOCK_ROOM_CODE : "------"}
-            remaining={mocked("topbar") ? 114_000 : 0}
-            turn={mocked("topbar") ? 7 : 0}
-            showClock={mocked("topbar")}
-            soundOff={false}
-            onRules={() => onAction({ type: "TOGGLE_STATS" })}
-            onToggleSound={() => onAction({ type: "TOGGLE_STATS" })}
-            onLeave={() => onAction({ type: "RESIGN" })}
-          />
-        )}
-      </div>
+  const showDeed = selectedIndex != null && on("panel");
 
-      <div className="grid min-h-0 grid-cols-[260px_minmax(0,1fr)_300px] gap-1.5 overflow-hidden bg-black">
-        <div className="flex min-h-0 w-full flex-col gap-1">
-          <div className="min-h-0 max-h-[32vh] shrink-0 basis-auto overflow-y-auto">
-            {on("rail") && (
-              <PlayerStandings
-                state={railState}
-                mySeat={mocked("rail") ? MOCK_SEAT : null}
-                moneyFlashes={mocked("rail") ? MOCK_FLASHES : {}}
-              />
-            )}
-          </div>
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <RailChatPanel
+  return (
+    <div className="grid h-screen grid-rows-[auto_minmax(0,1fr)] gap-2 overflow-hidden bg-[#f5f3ff] p-2.5 font-sans text-slate-800">
+      {on("topbar") && (
+        <GameTopBar
+          roomCode={mocked("topbar") ? MOCK_ROOM_CODE : "------"}
+          remaining={mocked("topbar") ? 114_000 : 0}
+          turn={mocked("topbar") ? 1 : 0}
+          showClock={mocked("topbar")}
+          soundOff={false}
+          onRules={() => onAction({ type: "TOGGLE_STATS" })}
+          onToggleSound={() => onAction({ type: "TOGGLE_STATS" })}
+          onLeave={() => onAction({ type: "RESIGN" })}
+        />
+      )}
+
+      <main className="grid min-h-0 grid-cols-[220px_minmax(0,1fr)_260px] gap-2 overflow-hidden max-[1080px]:grid-cols-[minmax(0,1fr)]">
+        {/* LEFT */}
+        <div className="min-h-0 max-[1080px]:order-2">
+          {on("rail") && (
+            <LeftRail
               state={railState}
               mySeat={mocked("rail") ? MOCK_SEAT : null}
-              messages={mocked("rail") ? MOCK_MESSAGES : []}
               playerId={MOCK_PLAYER_ID}
-              canTrade={mocked("rail")}
+              messages={mocked("rail") ? MOCK_MESSAGES : []}
               onSendChat={() => onAction({ type: "TOGGLE_STATS" })}
-              onOpenTrade={(recipient = 1) =>
-                onAction({ type: "OPEN_TRADE", recipient })
-              }
             />
-          </div>
+          )}
         </div>
-        <div className="flex min-h-0 w-full flex-col gap-1.5">
+
+        {/* CENTER */}
+        <section className="flex min-h-0 flex-col gap-1.5 max-[1080px]:order-1">
           <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
               onClick={() => setCalibrating((value) => !value)}
-              className={`rounded-xs border px-2 py-1 text-[10px] font-bold uppercase ${
+              className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase ${
                 calibrating
-                  ? "border-accent bg-accent text-white"
-                  : "border-line bg-surface text-dim"
+                  ? "border-transparent bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white"
+                  : "border-[#e9e2ff] bg-white text-slate-500 hover:bg-[#f8f6ff]"
               }`}
             >
               {calibrating ? "Calibrating board" : "Calibrate board"}
             </button>
-            {calibrating && (
-              <span className="text-[10px] text-dim">
-                drag the board to move the grid
-              </span>
-            )}
           </div>
+
           <div
             className="min-h-0 flex-1"
             onPointerDown={(event) => {
@@ -163,6 +146,7 @@ export function GameMockView({ flags, onAction }: GameMockViewProps) {
                 diceRolling={false}
                 displayPositions={{}}
                 hopping={{}}
+                focusOwner={focusSeat}
                 onSelectSquare={(index) => {
                   setSelectedIndex(index);
                   if (index != null)
@@ -172,42 +156,57 @@ export function GameMockView({ flags, onAction }: GameMockViewProps) {
             )}
           </div>
           {calibrating && <BoardCalibrator spec={spec} onChange={setSpec} />}
-        </div>
-        <div className="flex min-h-0 w-full flex-col gap-1.5">
-          {on("panel") && (
-            <>
-              <div className="min-h-0 flex-1">
-                <PropertyPanel
-                  state={mocked("panel") ? scenarioState : empty}
-                  mySeat={mocked("panel") ? MOCK_SEAT : null}
-                  isMyTurn={mocked("panel") ? scenario.isMyTurn : false}
-                  selectedIndex={
-                    mocked("panel")
-                      ? scenario.selectedIndex(scenarioState)
-                      : null
-                  }
-                  act={onAction}
-                  onOpenTrade={(recipient = 1) =>
-                    onAction({ type: "OPEN_TRADE", recipient })
-                  }
-                  onClose={() => setSelectedIndex(null)}
-                />
-              </div>
-            </>
+
+          {on("board") && (
+            <ActionBar
+              state={actionState}
+              isMyTurn={isMyTurn}
+              canBuy={false}
+              diceRolling={false}
+              act={onAction}
+              onRollStart={() => undefined}
+            />
+          )}
+
+          {on("rail") && (
+            <LiveLog
+              alerts={railState.alerts}
+              players={railState.players}
+            />
+          )}
+        </section>
+
+        {/* RIGHT */}
+        <div className="min-h-0 max-[1080px]:order-3">
+          {showDeed ? (
+            <PropertyPanel
+              state={mocked("panel") ? scenarioState : empty}
+              mySeat={mocked("panel") ? MOCK_SEAT : null}
+              isMyTurn={mocked("panel") ? scenario.isMyTurn : false}
+              selectedIndex={selectedIndex}
+              act={onAction}
+              onOpenTrade={(recipient = 1) =>
+                onAction({ type: "OPEN_TRADE", recipient })
+              }
+              onClose={() => setSelectedIndex(null)}
+            />
+          ) : (
+            on("panel") && (
+              <RightRail
+                state={mocked("panel") ? filled : empty}
+                mySeat={mocked("panel") ? MOCK_SEAT : null}
+                focusSeat={focusSeat}
+                onFocusSeat={setFocusSeat}
+                onSelectSquare={(index) => {
+                  setSelectedIndex(index);
+                  onAction({ type: "SELECT_PROPERTY", index });
+                }}
+                act={onAction}
+              />
+            )
           )}
         </div>
-      </div>
-
-      <div className="h-full ">
-        {on("dock") && (
-          <GameDock
-            state={dockState}
-            mySeat={mocked("dock") ? MOCK_SEAT : null}
-            onSelectSquare={setSelectedIndex}
-            act={onAction}
-          />
-        )}
-      </div>
+      </main>
     </div>
   );
 }

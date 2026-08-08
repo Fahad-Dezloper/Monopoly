@@ -20,6 +20,8 @@ interface GameBoardProps {
   hopping?: Record<number, number>;
   spec?: BoardSpec;
   showGrid?: boolean;
+  /** Highlight this player's owned tiles; dim others. */
+  focusOwner?: number | null;
 }
 
 export function GameBoard({
@@ -31,6 +33,7 @@ export function GameBoard({
   hopping = {},
   spec = DEFAULT_BOARD_SPEC,
   showGrid = false,
+  focusOwner = null,
 }: GameBoardProps) {
   const rects = tileRects(spec);
   const center = centerRect(spec);
@@ -46,7 +49,7 @@ export function GameBoard({
   return (
     <div className="grid h-full min-h-0 place-items-center [container-type:size]">
       <div
-        className="relative aspect-square h-[min(100cqh,100cqw)] w-[min(100cqh,100cqw)] overflow-hidden rounded-sm bg-ink shadow-[0_1.5cqi_4cqi_rgba(0,0,0,0.55)] [container-type:size]"
+        className="relative aspect-square h-[min(100cqh,100cqw)] w-[min(100cqh,100cqw)] overflow-hidden rounded-2xl bg-ink shadow-[0_1.5cqi_4cqi_rgba(0,0,0,0.35)] [container-type:size]"
         role="grid"
         aria-label="game board"
       >
@@ -94,6 +97,7 @@ export function GameBoard({
               playersHere={playersHere}
               hopping={hopping}
               showGrid={showGrid}
+              focusOwner={focusOwner}
               onSelect={() =>
                 onSelectSquare(selectedIndex === rect.index ? null : rect.index)
               }

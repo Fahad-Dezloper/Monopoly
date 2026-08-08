@@ -10,8 +10,8 @@ interface MoneySummaryProps {
 export function MoneySummary({ holdings }: MoneySummaryProps) {
   if (!holdings) {
     return (
-      <div className="flex h-full flex-col justify-center rounded-sm border border-dashed border-line px-4 text-dim">
-        <span className="text-[13px] font-bold text-body">Not seated</span>
+      <div className="flex h-full flex-col justify-center rounded-xl border border-dashed border-line px-4 text-dim">
+        <span className="text-[13px] font-bold text-slate-700">Not seated</span>
         <span className="text-[11.5px]">Join a room to track your money.</span>
       </div>
     );
@@ -21,12 +21,12 @@ export function MoneySummary({ holdings }: MoneySummaryProps) {
   const cashShare = worth > 0 ? Math.round((holdings.cash / worth) * 100) : 0;
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-sm border border-line bg-surface-2 p-3">
+    <div className="flex h-full min-h-[88px] flex-col justify-between gap-2">
       <div>
-        <div className="text-[10px] font-bold tracking-wider text-dim uppercase">
+        <div className="text-[10px] font-extrabold tracking-wider text-dim uppercase">
           Cash in hand
         </div>
-        <div className="text-[30px] leading-none font-extrabold tabular-nums text-good">
+        <div className="text-[28px] leading-none font-black tabular-nums text-good">
           {money(holdings.cash)}
         </div>
       </div>
@@ -53,10 +53,10 @@ export function MoneySummary({ holdings }: MoneySummaryProps) {
       </div>
 
       <div className="flex items-baseline justify-between border-t border-line pt-1.5">
-        <span className="text-[10px] font-bold tracking-wider text-dim uppercase">
+        <span className="text-[10px] font-extrabold tracking-wider text-dim uppercase">
           Net worth
         </span>
-        <span className="text-[15px] font-extrabold tabular-nums text-body">
+        <span className="text-[15px] font-extrabold tabular-nums text-slate-800">
           {money(worth)}
         </span>
       </div>

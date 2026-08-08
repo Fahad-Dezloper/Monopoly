@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ActionBar } from "@/components/game/ActionBar";
 import { GameBoard } from "@/components/game/board/GameBoard";
-import { GameDock } from "@/components/game/dock/GameDock";
 import { GameTopBar } from "@/components/game/GameTopBar";
 import { AuctionDialog } from "@/components/game/dialogs/AuctionDialog";
 import { CardDialog } from "@/components/game/dialogs/CardDialog";
@@ -11,8 +10,9 @@ import { RulesDialog } from "@/components/game/dialogs/RulesDialog";
 import { StatsDialog } from "@/components/game/dialogs/StatsDialog";
 import { TradeDialog } from "@/components/game/dialogs/TradeDialog";
 import { PropertyPanel } from "@/components/game/property/PropertyPanel";
-import { PlayerStandings } from "@/components/game/rail/PlayerStandings";
-import { RailChatPanel } from "@/components/game/rail/RailChatPanel";
+import { LeftRail } from "@/components/game/rail/LeftRail";
+import { LiveLog } from "@/components/game/rail/LiveLog";
+import { RightRail } from "@/components/game/rail/RightRail";
 import { useDiceRoll } from "@/hooks/useDiceRoll";
 import { useGameFx } from "@/hooks/useGameFx";
 import { useTurnClock } from "@/hooks/useTurnClock";
@@ -54,6 +54,7 @@ export function GameScreen({
   const { rolling: localRolling, startRoll } = useDiceRoll();
   const diceRolling = localRolling || awaitingChain;
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [focusSeat, setFocusSeat] = useState<number | null>(null);
   const [showRules, setShowRules] = useState(false);
   const [tradeDismissed, setTradeDismissed] = useState(false);
   const [soundOff, setSoundOff] = useState(isMuted);
@@ -61,7 +62,7 @@ export function GameScreen({
   const lastDiceKey = useRef("");
   const localRollPending = useRef(false);
 
-  const { moneyFlashes, displayPositions, hopping } = useGameFx(state);
+  const { displayPositions, hopping } = useGameFx(state);
   const remaining = useTurnClock(state.turnDeadlineAt);
 
   useEffect(() => {
@@ -94,9 +95,6 @@ export function GameScreen({
     landedSquare?.price > 0 &&
     landedSquare?.owner === 0 &&
     current.money >= landedSquare.price;
-
-  const canTrade =
-    isMyTurn && state.phase !== "auction" && state.phase !== "game_over";
 
   const seatedState: GameState = {
     ...state,
@@ -131,8 +129,12 @@ export function GameScreen({
     setSoundOff(next);
   };
 
+  // When a tile is selected, still show property panel overlay on right via selectedIndex
+  // Right rail always visible; property detail can replace board state when selected
+  const showDeed = selectedIndex != null;
+
   return (
-    <div className="grid h-dvh grid-rows-[auto_minmax(0,1fr)_auto] gap-2.5 overflow-hidden bg-shell p-2.5 font-sans text-body">
+    <div className="grid h-dvh grid-rows-[auto_minmax(0,1fr)] gap-2 overflow-hidden bg-[#f5f3ff] p-2.5 font-sans text-slate-800">
       <GameTopBar
         roomCode={roomCode}
         remaining={remaining}
@@ -146,80 +148,84 @@ export function GameScreen({
         onLeave={onLeave}
       />
 
-      <main className="grid min-h-0 grid-cols-[260px_minmax(0,1fr)_320px] gap-2.5 max-[1080px]:grid-cols-[minmax(0,1fr)]">
-        <div className="flex min-h-0 w-full flex-col gap-1.5 max-[1080px]:order-2">
-          <div className="scrollless min-h-0 shrink-0 overflow-y-auto">
-            <PlayerStandings
-              state={state}
-              mySeat={mySeat}
-              moneyFlashes={moneyFlashes}
-            />
-          </div>
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <RailChatPanel
-              state={state}
-              mySeat={mySeat}
-              messages={messages}
-              playerId={playerId}
-              canTrade={canTrade}
-              onSendChat={onSendChat}
-              onOpenTrade={openTrade}
-            />
-          </div>
+      <main className="grid min-h-0 grid-cols-[220px_minmax(0,1fr)_260px] gap-2 max-[1080px]:grid-cols-[minmax(0,1fr)]">
+        {/* LEFT: money + chat */}
+        <div className="min-h-0 max-[1080px]:order-2 max-[1080px]:max-h-[40vh]">
+          <LeftRail
+            state={state}
+            mySeat={mySeat}
+            playerId={playerId}
+            messages={messages}
+            onSendChat={onSendChat}
+          />
         </div>
 
-        <section className="flex min-h-0 flex-col gap-2 max-[1080px]:order-1">
+        {/* CENTER: board + actions + live log */}
+        <section className="flex min-h-0 flex-col gap-1.5 max-[1080px]:order-1">
           {error && <div className={errorBox}>{error}</div>}
 
-          <GameBoard
-            state={state}
-            spec={boardSpec}
-            selectedIndex={selectedIndex}
-            diceRolling={diceRolling}
-            displayPositions={displayPositions}
-            hopping={hopping}
-            onSelectSquare={(index) => {
-              setSelectedIndex(index);
-              if (index != null && isMyTurn) {
-                act({ type: "SELECT_PROPERTY", index });
-              }
-            }}
-          />
+          <div className="min-h-0 flex-1">
+            <GameBoard
+              state={state}
+              spec={boardSpec}
+              selectedIndex={selectedIndex}
+              diceRolling={diceRolling}
+              displayPositions={displayPositions}
+              hopping={hopping}
+              focusOwner={focusSeat}
+              onSelectSquare={(index) => {
+                setSelectedIndex(index);
+                if (index != null && isMyTurn) {
+                  act({ type: "SELECT_PROPERTY", index });
+                }
+              }}
+            />
+          </div>
 
           <ActionBar
             state={state}
             isMyTurn={isMyTurn}
             canBuy={!!canBuy}
             diceRolling={diceRolling}
-            canTrade={canTrade}
             act={act}
             onRollStart={() => {
               localRollPending.current = true;
               startRoll();
             }}
-            onOpenTrade={openTrade}
           />
+
+          <LiveLog alerts={state.alerts} players={state.players} />
         </section>
 
-        <div className="flex min-h-0 w-full flex-col max-[1080px]:order-3">
-          <PropertyPanel
-            state={state}
-            mySeat={mySeat}
-            isMyTurn={isMyTurn}
-            selectedIndex={selectedIndex}
-            act={act}
-            onOpenTrade={openTrade}
-            onClose={() => setSelectedIndex(null)}
-          />
+        {/* RIGHT: board state / players / my stuff — or deed when selected */}
+        <div className="min-h-0 max-[1080px]:order-3 max-[1080px]:max-h-[45vh]">
+          {showDeed ? (
+            <div className="flex h-full min-h-0 flex-col gap-2">
+              <PropertyPanel
+                state={state}
+                mySeat={mySeat}
+                isMyTurn={isMyTurn}
+                selectedIndex={selectedIndex}
+                act={act}
+                onOpenTrade={openTrade}
+                onClose={() => setSelectedIndex(null)}
+              />
+            </div>
+          ) : (
+            <RightRail
+              state={state}
+              mySeat={mySeat}
+              focusSeat={focusSeat}
+              onFocusSeat={setFocusSeat}
+              onSelectSquare={(index) => {
+                setSelectedIndex(index);
+                if (isMyTurn) act({ type: "SELECT_PROPERTY", index });
+              }}
+              act={act}
+            />
+          )}
         </div>
       </main>
-
-      <GameDock
-        state={state}
-        mySeat={mySeat}
-        onSelectSquare={setSelectedIndex}
-        act={act}
-      />
 
       {state.phase === "auction" ? (
         <AuctionDialog
@@ -245,7 +251,7 @@ export function GameScreen({
       <RulesDialog open={showRules} onClose={() => setShowRules(false)} />
 
       {state.phase === "game_over" && state.winner && (
-        <div className="fixed bottom-5.5 left-1/2 z-70 -translate-x-1/2 rounded-full bg-accent px-5.5 py-3 text-[14px] font-bold text-white shadow-panel">
+        <div className="fixed bottom-5.5 left-1/2 z-70 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] px-5.5 py-3 text-[14px] font-bold text-white shadow-xl">
           🏆 {state.players[state.winner].name} wins — last player standing
         </div>
       )}

@@ -14,13 +14,13 @@ import type { GameState, Square } from "@/lib/monopoly/types";
 import { cx } from "@/lib/ui";
 
 const BUTTON =
-  "flex-1 justify-center inline-flex items-center gap-1.75 rounded-[10px] border px-2.5 py-2.25 text-[12px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-38";
+  "flex-1 justify-center inline-flex items-center gap-1.75 rounded-full border px-2.5 py-2.25 text-[12px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-38";
 
 const NEUTRAL =
-  "border-line bg-surface text-body hover:not-disabled:border-[#3e3e48] hover:not-disabled:bg-surface-2";
+  "border-[#e9e2ff] bg-white text-slate-700 hover:not-disabled:border-[#7c3aed]/40 hover:not-disabled:bg-[#f8f6ff] hover:not-disabled:text-[#7c3aed]";
 
 const PRIMARY =
-  "border-accent bg-accent text-white hover:not-disabled:border-accent-hover hover:not-disabled:bg-accent-hover";
+  "border-transparent bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white hover:not-disabled:opacity-95";
 
 interface PropertyActionsProps {
   state: GameState;
@@ -46,7 +46,7 @@ export function PropertyActions({
     : square.house > 0;
 
   return (
-    <div className="flex flex-wrap gap-1.5 border-t border-line px-3.5 py-2.5">
+    <div className="flex flex-wrap gap-1.5 border-t border-[#e9e2ff] px-3.5 py-2.5">
       {isStreet && (
         <>
           <button

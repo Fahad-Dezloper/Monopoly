@@ -40,7 +40,7 @@ export function RailChatPanel({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2 p-2">
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
       <RailTabs
         tab={tab}
         unread={unread}
@@ -55,17 +55,20 @@ export function RailChatPanel({
         <ChatFeed
           messages={messages}
           playerId={playerId}
-          emptyLabel="say something to the table"
+          emptyLabel="Say something to the table"
+          className="!rounded-2xl !border-line !bg-white !text-slate-700"
         />
       )}
 
       {tab === "deals" && (
-        <DealsPanel
-          state={state}
-          mySeat={mySeat}
-          canTrade={canTrade}
-          onOpenTrade={onOpenTrade}
-        />
+        <div className="min-h-0 flex-1 overflow-auto rounded-2xl border border-line bg-white p-2">
+          <DealsPanel
+            state={state}
+            mySeat={mySeat}
+            canTrade={canTrade}
+            onOpenTrade={onOpenTrade}
+          />
+        </div>
       )}
 
       {tab === "chat" && (

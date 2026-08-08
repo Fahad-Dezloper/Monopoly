@@ -4,10 +4,10 @@ import { useEffect, type ReactNode } from "react";
 import { cx } from "@/lib/ui";
 
 const TONE: Record<string, string> = {
-  neutral: "bg-surface-2",
-  accent: "bg-accent text-white",
-  alert: "bg-bad/18",
-  positive: "bg-good/15",
+  neutral: "bg-[#f8f6ff]",
+  accent: "bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white",
+  alert: "bg-rose-50",
+  positive: "bg-emerald-50",
 };
 
 const SIZE: Record<string, string> = {
@@ -52,7 +52,7 @@ export function Dialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-5"
+      className="fixed inset-0 z-50 grid place-items-center bg-slate-900/35 p-5 backdrop-blur-[2px]"
       onClick={() => onClose?.()}
       role="presentation"
     >
@@ -62,7 +62,7 @@ export function Dialog({
         aria-label={title}
         onClick={(event) => event.stopPropagation()}
         className={cx(
-          "flex max-h-[86vh] flex-col overflow-hidden rounded-sm border border-line bg-surface shadow-panel",
+          "flex max-h-[86vh] flex-col overflow-hidden rounded-3xl border border-[#e9e2ff] bg-white text-slate-800 shadow-2xl",
           SIZE[size],
         )}
       >
@@ -81,15 +81,30 @@ export function Dialog({
         >
           <div className="min-w-0">
             {eyebrow && (
-              <div className="mb-0.5 text-[10px] font-bold tracking-[0.14em] uppercase opacity-70">
+              <div
+                className={cx(
+                  "mb-1 text-[10px] font-extrabold tracking-[0.14em] uppercase",
+                  tone === "accent" ? "text-white/80" : "text-[#7c3aed]",
+                )}
+              >
                 {eyebrow}
               </div>
             )}
-            <h2 className="text-[19px] leading-tight font-extrabold">
+            <h2
+              className={cx(
+                "text-[19px] leading-tight font-extrabold",
+                tone === "accent" ? "text-white" : "text-slate-900",
+              )}
+            >
               {title}
             </h2>
             {subtitle && (
-              <div className="mt-1 text-[12.5px] leading-normal opacity-75">
+              <div
+                className={cx(
+                  "mt-1 text-[12.5px] leading-normal",
+                  tone === "accent" ? "text-white/75" : "text-slate-500",
+                )}
+              >
                 {subtitle}
               </div>
             )}
@@ -100,7 +115,12 @@ export function Dialog({
               onClick={onClose}
               aria-label={closeLabel}
               title={`${closeLabel} (Esc)`}
-              className="-mt-1 -mr-1 grid size-8 shrink-0 place-items-center rounded-sm text-[15px] opacity-60 transition-opacity hover:opacity-100"
+              className={cx(
+                "-mt-1 -mr-1 grid size-8 shrink-0 place-items-center rounded-xl text-[15px] transition-colors",
+                tone === "accent"
+                  ? "text-white/70 hover:bg-white/15 hover:text-white"
+                  : "text-slate-400 hover:bg-[#f0ebff] hover:text-slate-700",
+              )}
             >
               ✕
             </button>
@@ -112,7 +132,7 @@ export function Dialog({
         </div>
 
         {footer && (
-          <div className="shrink-0 border-t border-line bg-shell-2/60 p-3">
+          <div className="shrink-0 border-t border-[#e9e2ff] bg-[#fdfcff] p-3">
             {footer}
           </div>
         )}
@@ -122,10 +142,13 @@ export function Dialog({
 }
 
 export const dialogPrimary =
-  "inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-sm bg-accent px-4 text-[13px] font-bold text-white transition-colors hover:not-disabled:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] px-4 text-[13px] font-bold text-white shadow-[0_6px_16px_rgba(124,58,237,0.3)] transition-all hover:not-disabled:opacity-95 disabled:cursor-not-allowed disabled:opacity-40";
 
 export const dialogGhost =
-  "inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-sm border border-line bg-surface-2 px-4 text-[13px] font-semibold text-body transition-colors hover:not-disabled:border-[#3e3e48] hover:not-disabled:bg-[#2a2a32] disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full border border-[#e9e2ff] bg-white px-4 text-[13px] font-semibold text-slate-700 shadow-sm transition-colors hover:not-disabled:border-[#7c3aed]/35 hover:not-disabled:bg-[#f8f6ff] disabled:cursor-not-allowed disabled:opacity-40";
+
+export const dialogSecondary =
+  "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#22d3ee] to-[#06b6d4] px-4 text-[13px] font-bold text-white shadow-[0_6px_16px_rgba(6,182,212,0.3)] transition-all hover:not-disabled:opacity-95 disabled:cursor-not-allowed disabled:opacity-40";
 
 export const dialogDanger =
-  "inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-sm border border-bad/40 px-4 text-[13px] font-semibold text-[#f07a8a] transition-colors hover:bg-bad/10";
+  "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full border border-rose-200 bg-white px-4 text-[13px] font-semibold text-rose-500 transition-colors hover:bg-rose-50";

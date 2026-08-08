@@ -24,6 +24,8 @@ interface BoardOverlayTileProps {
   playersHere: Player[];
   hopping: Record<number, number>;
   showGrid?: boolean;
+  /** When set, owned tiles of this seat pop; others dim. */
+  focusOwner?: number | null;
   onSelect: () => void;
 }
 
@@ -37,8 +39,14 @@ export function BoardOverlayTile({
   playersHere,
   hopping,
   showGrid = false,
+  focusOwner = null,
   onSelect,
 }: BoardOverlayTileProps) {
+  const focusing = focusOwner != null && focusOwner > 0;
+  const isFocusOwned = focusing && square.owner === focusOwner;
+  const isFocusOther =
+    focusing && square.price > 0 && square.owner !== focusOwner;
+
   return (
     <button
       type="button"
@@ -50,16 +58,21 @@ export function BoardOverlayTile({
         top: `${rect.top}%`,
         width: `${rect.width}%`,
         height: `${rect.height}%`,
-        background: ownerColor
-          ? `color-mix(in srgb, ${ownerColor} ${square.mortgage ? 22 : 38}%, transparent)`
-          : undefined,
+        background: isFocusOwned
+          ? `color-mix(in srgb, ${ownerColor ?? "#7c3aed"} 55%, transparent)`
+          : ownerColor && !focusing
+            ? `color-mix(in srgb, ${ownerColor} ${square.mortgage ? 22 : 38}%, transparent)`
+            : undefined,
       }}
       className={cx(
-        "absolute flex items-center justify-center transition-[box-shadow,background-color] duration-150",
+        "absolute flex items-center justify-center transition-[box-shadow,background-color,opacity,filter] duration-200",
         "hover:shadow-[inset_0_0_0_2px_rgba(255,255,255,0.65)]",
         active && "shadow-[inset_0_0_0_3px_var(--color-ink)]",
         selected && "shadow-[inset_0_0_0_3px_var(--color-accent)]",
-        square.mortgage && "grayscale-[0.35]",
+        isFocusOwned &&
+          "z-10 shadow-[inset_0_0_0_3px_rgba(124,58,237,0.85)]",
+        isFocusOther && "opacity-30 grayscale",
+        square.mortgage && !focusing && "grayscale-[0.35]",
         showGrid && "shadow-[inset_0_0_0_1px_rgba(255,0,128,0.9)]",
       )}
     >

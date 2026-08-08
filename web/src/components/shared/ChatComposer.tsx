@@ -44,7 +44,7 @@ export function ChatComposer({
       />
       <button
         type="submit"
-        className="grid w-10 shrink-0 place-items-center rounded-[10px] border border-line bg-accent text-white disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-dim"
+        className="grid w-10 shrink-0 place-items-center rounded-xl border border-transparent bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white disabled:cursor-not-allowed disabled:border-[#e9e2ff] disabled:bg-[#f0ebff] disabled:text-slate-400"
         disabled={!draft.trim()}
         aria-label="Send message"
       >

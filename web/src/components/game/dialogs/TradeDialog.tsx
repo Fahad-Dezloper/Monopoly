@@ -2,7 +2,12 @@
 
 import type { GameAction } from "@/lib/monopoly/engine";
 import type { GameState, Player, Square } from "@/lib/monopoly/types";
-import { btn, cx, input, panelClose } from "@/lib/ui";
+import { cx, input, panelClose } from "@/lib/ui";
+import {
+  dialogDanger,
+  dialogGhost,
+  dialogPrimary,
+} from "@/components/game/dialogs/Dialog";
 
 interface TradeDialogProps {
   state: GameState;
@@ -51,34 +56,35 @@ export function TradeDialog({ state, mySeat, act, onClose }: TradeDialogProps) {
 
   return (
     <div
-      className="fixed inset-0 z-60 grid place-items-center bg-black/65 p-5"
+      className="fixed inset-0 z-60 grid place-items-center bg-slate-900/35 p-5 backdrop-blur-[2px]"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[86vh] w-[min(720px,100%)] flex-col overflow-auto rounded-panel border border-line bg-surface shadow-panel"
+        className="flex max-h-[86vh] w-[min(720px,100%)] flex-col overflow-auto rounded-3xl border border-[#e9e2ff] bg-white text-slate-800 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-label="Trade"
       >
-        <header className="flex items-center justify-between bg-accent px-3.5 py-3 text-[13px] font-bold text-white">
+        <header className="flex items-center justify-between bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] px-4 py-3.5 text-[13px] font-bold text-white">
           <span>
             Deal · {initiator.name} ⇄ {recipient.name}
           </span>
-          <button type="button" className={panelClose} onClick={onClose}>
+          <button
+            type="button"
+            className={cx(panelClose, "text-white/80 hover:text-white")}
+            onClick={onClose}
+          >
             ✕
           </button>
         </header>
 
-        <div className="grid grid-cols-2 gap-3 p-3.5 max-[720px]:grid-cols-1">
+        <div className="grid grid-cols-2 gap-3 p-4 max-[720px]:grid-cols-1">
           {columns.map(({ seat, side, player }) => (
             <div
               key={side}
-              className="flex min-w-0 flex-col gap-2 rounded-[11px] border border-line bg-surface-2 p-2.5"
+              className="flex min-w-0 flex-col gap-2 rounded-2xl border border-[#e9e2ff] bg-[#fdfcff] p-3"
             >
-              <div
-                className="text-[13px] font-bold"
-                style={{ color: player.color }}
-              >
+              <div className="text-[13px] font-extrabold text-slate-800">
                 {side === "right" && state.playerCount > 2 ? (
                   <select
                     className={input}
@@ -108,7 +114,7 @@ export function TradeDialog({ state, mySeat, act, onClose }: TradeDialogProps) {
                 )}
               </div>
 
-              <label className="flex flex-col gap-1 text-[11px] text-dim">
+              <label className="flex flex-col gap-1 text-[11px] font-extrabold tracking-wider text-[#7c3aed] uppercase">
                 <span>Cash</span>
                 <input
                   className={input}
@@ -126,12 +132,14 @@ export function TradeDialog({ state, mySeat, act, onClose }: TradeDialogProps) {
 
               <div className="flex max-h-55 flex-col gap-1 overflow-y-auto">
                 {tradableFor(seat).length === 0 && (
-                  <div className="text-[11px] text-dim">No tradable deeds.</div>
+                  <div className="text-[11px] text-slate-400">
+                    No tradable deeds.
+                  </div>
                 )}
                 {tradableFor(seat).map((square) => (
                   <label
                     key={square.index}
-                    className="flex items-center gap-1.75 px-0.5 py-1 text-[12px]"
+                    className="flex items-center gap-1.75 rounded-lg px-1.5 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-white"
                   >
                     <input
                       type="checkbox"
@@ -154,22 +162,19 @@ export function TradeDialog({ state, mySeat, act, onClose }: TradeDialogProps) {
           ))}
         </div>
 
-        <div className="flex gap-2 border-t border-line px-3.5 py-3">
+        <div className="flex gap-2 border-t border-[#e9e2ff] bg-[#fdfcff] px-4 py-3">
           {!trade.awaitingResponse ? (
             <>
               <button
                 type="button"
-                className={cx(
-                  btn,
-                  "flex-1 border-accent bg-accent text-white hover:not-disabled:border-accent-hover hover:not-disabled:bg-accent-hover",
-                )}
+                className={dialogPrimary}
                 onClick={() => act({ type: "PROPOSE_TRADE" })}
               >
                 Propose deal
               </button>
               <button
                 type="button"
-                className={cx(btn, "flex-1")}
+                className={dialogGhost}
                 onClick={() => {
                   act({ type: "CANCEL_TRADE" });
                   onClose();
@@ -178,31 +183,34 @@ export function TradeDialog({ state, mySeat, act, onClose }: TradeDialogProps) {
                 Cancel
               </button>
             </>
-          ) : (
+          ) : iAmRecipient ? (
             <>
               <button
                 type="button"
-                className={cx(
-                  btn,
-                  "flex-1 border-accent bg-accent text-white hover:not-disabled:border-accent-hover hover:not-disabled:bg-accent-hover",
-                )}
-                disabled={!iAmRecipient}
-                title={iAmRecipient ? "" : "Waiting for the other player"}
+                className={dialogPrimary}
                 onClick={() => act({ type: "ACCEPT_TRADE" })}
               >
-                {iAmRecipient ? "Accept" : "Waiting for reply…"}
+                Accept
               </button>
               <button
                 type="button"
-                className={cx(btn, "flex-1 border-bad/35 text-[#f07a8a]")}
-                onClick={() => {
-                  act({ type: "CANCEL_TRADE" });
-                  onClose();
-                }}
+                className={dialogDanger}
+                onClick={() => act({ type: "CANCEL_TRADE" })}
               >
                 Reject
               </button>
             </>
+          ) : (
+            <button
+              type="button"
+              className={dialogGhost}
+              onClick={() => {
+                act({ type: "CANCEL_TRADE" });
+                onClose();
+              }}
+            >
+              Cancel proposal
+            </button>
           )}
         </div>
       </div>

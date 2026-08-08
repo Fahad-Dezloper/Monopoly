@@ -21,7 +21,7 @@ export function PlayerStandings({
   );
 
   return (
-    <div className="flex flex-col gap-1.5  p-2">
+    <div className="flex flex-col gap-2 p-0.5">
       {players.map((player) => (
         <PlayerCard
           key={player.index}

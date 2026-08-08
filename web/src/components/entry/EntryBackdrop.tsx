@@ -11,10 +11,10 @@ const noop = () => undefined;
 export function EntryBackdrop() {
   return (
     <div
-      className="pointer-events-none fixed inset-0 overflow-hidden bg-shell select-none"
+      className="pointer-events-none fixed inset-0 overflow-hidden bg-[#f5f3ff] select-none"
       aria-hidden
     >
-      <div className="size-full blur-[7px] brightness-[1.35] saturate-[1.1]">
+      <div className="size-full scale-[1.02] blur-[8px] brightness-[1.05] saturate-[1.05]">
         <GameScreen
           state={BACKDROP_STATE}
           roomCode={MOCK_ROOM_CODE}
@@ -28,7 +28,7 @@ export function EntryBackdrop() {
           onLeave={noop}
         />
       </div>
-      <div className="absolute inset-0 bg-shell/45" />
+      <div className="absolute inset-0 bg-[#f5f3ff]/55" />
     </div>
   );
 }

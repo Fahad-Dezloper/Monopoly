@@ -15,11 +15,13 @@ interface DeedStripProps {
 export function DeedStrip({ state, deeds, onSelectSquare }: DeedStripProps) {
   if (deeds.length === 0) {
     return (
-      <div className="flex h-full items-center gap-3 rounded-sm border border-dashed border-line px-4 py-5 text-dim">
-        <HouseIcon className="size-7 shrink-0 opacity-60" />
+      <div className="flex h-full min-h-[72px] items-center gap-3 rounded-xl border border-dashed border-[#e9e2ff] bg-[#f8f6ff] px-4 py-3">
+        <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[#7c3aed]/10 text-[#7c3aed]">
+          <HouseIcon className="size-5" />
+        </div>
         <div>
-          <div className="text-[13px] font-bold text-body">No deeds yet</div>
-          <div className="text-[11.5px]">
+          <div className="text-[13px] font-bold text-slate-700">No deeds yet</div>
+          <div className="text-[11.5px] text-slate-500">
             Land on a city and buy it to start a colour set.
           </div>
         </div>
@@ -45,8 +47,8 @@ export function DeedStrip({ state, deeds, onSelectSquare }: DeedStripProps) {
             type="button"
             onClick={() => onSelectSquare(square.index)}
             className={cx(
-              "group relative flex h-full w-[136px] shrink-0 flex-col overflow-hidden rounded-sm border bg-surface-2 text-left transition-all hover:-translate-y-0.5 hover:border-body/40",
-              complete ? "border-body/30" : "border-line",
+              "group relative flex h-full w-[136px] shrink-0 flex-col overflow-hidden rounded-xl border bg-white text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#7c3aed]/40 hover:bg-[#fdfcff]",
+              complete ? "border-[#7c3aed]/30" : "border-[#e9e2ff]",
               square.mortgage && "opacity-55",
             )}
           >
@@ -57,7 +59,7 @@ export function DeedStrip({ state, deeds, onSelectSquare }: DeedStripProps) {
             />
 
             <span className="flex min-h-0 flex-1 flex-col justify-between p-2">
-              <span className="block text-[12.5px] leading-tight font-bold text-body">
+              <span className="block text-[12.5px] leading-tight font-bold text-slate-800">
                 {square.name}
               </span>
 
@@ -81,10 +83,10 @@ export function DeedStrip({ state, deeds, onSelectSquare }: DeedStripProps) {
                 )}
 
                 <span className="flex items-baseline justify-between gap-1">
-                  <span className="text-[10px] font-bold tracking-wider text-dim uppercase">
+                  <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                     Rent
                   </span>
-                  <span className="text-[13px] font-extrabold tabular-nums text-good">
+                  <span className="text-[13px] font-extrabold tabular-nums text-emerald-600">
                     {square.mortgage ? "—" : money(currentRent(state, square))}
                   </span>
                 </span>
@@ -92,13 +94,13 @@ export function DeedStrip({ state, deeds, onSelectSquare }: DeedStripProps) {
             </span>
 
             {square.mortgage && (
-              <span className="absolute top-4 right-1.5 rounded-xs bg-warn px-1 py-px text-[8.5px] font-bold tracking-wider text-ink uppercase">
+              <span className="absolute top-4 right-1.5 rounded-md bg-amber-400 px-1 py-px text-[8.5px] font-bold tracking-wider text-slate-900 uppercase">
                 Mtg
               </span>
             )}
             {complete && !square.mortgage && (
               <span
-                className="absolute top-4 right-1.5 rounded-xs px-1 py-px text-[8.5px] font-bold tracking-wider text-ink uppercase"
+                className="absolute top-4 right-1.5 rounded-md px-1 py-px text-[8.5px] font-bold tracking-wider text-slate-900 uppercase"
                 style={{ background: square.color }}
               >
                 Set

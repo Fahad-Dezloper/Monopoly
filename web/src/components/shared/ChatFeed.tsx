@@ -35,8 +35,10 @@ export function ChatFeed({
           <div
             key={message.id}
             className={cx(
-              "flex max-w-[92%] flex-col gap-0.5 rounded-[9px] px-2 py-1.5 text-[12px]",
-              mine ? "self-end bg-accent/22" : "self-start bg-surface-2",
+              "flex max-w-[92%] flex-col gap-0.5 rounded-xl px-2.5 py-1.5 text-[12px]",
+              mine
+                ? "self-end bg-accent/15 text-slate-800"
+                : "self-start bg-surface-2 text-slate-700",
             )}
           >
             <span
