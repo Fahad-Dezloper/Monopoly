@@ -5,6 +5,7 @@ import { RedisModule } from "./redis/redis.module";
 import { PlayersModule } from "./players/players.module";
 import { RoomsModule } from "./rooms/rooms.module";
 import { GameModule } from "./game/game.module";
+import { ChatModule } from "./chat/chat.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -15,6 +16,7 @@ import { HealthController } from "./health.controller";
     PlayersModule,
     RoomsModule,
     GameModule,
+    ChatModule,
   ],
   controllers: [HealthController],
 })

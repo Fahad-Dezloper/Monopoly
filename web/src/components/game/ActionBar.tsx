@@ -165,7 +165,7 @@ export function ActionBar({
           type="button"
           className={cx(BUTTON, NEUTRAL)}
           disabled={!isMyTurn || state.phase === "game_over"}
-          onClick={onOpenTrade}
+          onClick={() => onOpenTrade()}
           title="Propose a trade"
         >
           ⇄ Trade

@@ -1,6 +1,7 @@
 "use client";
 
 import { BoardCenter } from "@/components/game/board/BoardCenter";
+import type { LogLink } from "@/components/game/rail/LiveLog";
 import { BoardOverlayTile } from "@/components/game/board/BoardOverlayTile";
 import {
   BOARD_IMAGE,
@@ -14,6 +15,8 @@ import type { GameState, Player } from "@/lib/monopoly/types";
 
 interface GameBoardProps {
   state: GameState;
+  logLinks?: LogLink[];
+  explorerFor?: (signature: string) => string;
   selectedIndex: number | null;
   onSelectSquare: (index: number | null) => void;
   diceRolling?: boolean;
@@ -32,6 +35,8 @@ interface GameBoardProps {
 
 export function GameBoard({
   state,
+  logLinks,
+  explorerFor,
   selectedIndex,
   onSelectSquare,
   diceRolling = false,
@@ -82,6 +87,8 @@ export function GameBoard({
           }}
         >
           <BoardCenter
+            logLinks={logLinks}
+            explorerFor={explorerFor}
             state={state}
             die1={state.die1}
             die2={state.die2}

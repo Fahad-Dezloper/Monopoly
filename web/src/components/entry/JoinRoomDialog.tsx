@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PlayerIdentityFields } from "@/components/entry/PlayerIdentityFields";
 import { DevnetWalletCard } from "@/components/entry/DevnetWalletCard";
+import { CHAIN_ENABLED } from "@/lib/chain/config";
 import type { PlayerColor } from "@/lib/monopoly/types";
 
 interface JoinRoomDialogProps {
@@ -36,9 +37,11 @@ export function JoinRoomDialog({
   });
   const [code, setCode] = useState(initialCode ?? "");
   const [isWalletFunded, setIsWalletFunded] = useState<boolean>(true);
+  // Off chain there is no wallet to fund, so it can never block the form.
+  const walletReady = !CHAIN_ENABLED || isWalletFunded;
 
   const ready =
-    !busy && !!name.trim() && code.trim().length >= 4 && isWalletFunded;
+    !busy && !!name.trim() && code.trim().length >= 4 && walletReady;
 
   const submit = () => {
     if (!ready) return;
@@ -74,7 +77,9 @@ export function JoinRoomDialog({
           </div>
 
           {/* DEVNET WALLET CARD & SOL BALANCE */}
-          <DevnetWalletCard onFundedChange={setIsWalletFunded} />
+          {CHAIN_ENABLED && (
+            <DevnetWalletCard onFundedChange={setIsWalletFunded} />
+          )}
 
           <PlayerIdentityFields
             name={name}

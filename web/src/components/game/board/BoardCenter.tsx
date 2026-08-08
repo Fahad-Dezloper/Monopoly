@@ -2,7 +2,7 @@
 
 import { ActionBar } from "@/components/game/ActionBar";
 import { DiceCubes } from "@/components/game/board/DiceCubes";
-import { LiveLog } from "@/components/game/rail/LiveLog";
+import { LiveLog, type LogLink } from "@/components/game/rail/LiveLog";
 import type { GameAction } from "@/lib/monopoly/engine";
 import type { GameState, Player } from "@/lib/monopoly/types";
 
@@ -19,6 +19,8 @@ interface BoardCenterProps {
   act: (action: GameAction) => void;
   onRollStart: () => void;
   onOpenTrade?: () => void;
+  logLinks?: LogLink[];
+  explorerFor?: (signature: string) => string;
 }
 
 export function BoardCenter({
@@ -34,6 +36,8 @@ export function BoardCenter({
   act,
   onRollStart,
   onOpenTrade,
+  logLinks,
+  explorerFor,
 }: BoardCenterProps) {
   return (
     <div className="relative flex size-full flex-col items-center justify-center gap-[1.1cqi] overflow-hidden px-[2cqi] py-[1.2cqi]">
@@ -73,7 +77,13 @@ export function BoardCenter({
       </div>
 
       <div className="z-20 min-h-0 w-full max-w-[92%] flex-1 basis-[26%] overflow-hidden">
-        <LiveLog alerts={state.alerts} players={state.players} compact />
+        <LiveLog
+          alerts={state.alerts}
+          players={state.players}
+          compact
+          links={logLinks}
+          explorerFor={explorerFor}
+        />
       </div>
     </div>
   );

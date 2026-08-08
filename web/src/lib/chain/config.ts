@@ -40,3 +40,20 @@ export const NAME_LEN = 16;
 export const CODE_LEN = 6;
 
 export const BANK = 0;
+
+/**
+ * Rollup transactions are not on Solana's public clusters — they run on the
+ * validator holding the delegated account, so the explorer has to be pointed at
+ * that RPC. Base-layer transactions use the normal cluster.
+ */
+export function explorerTxUrl(signature: string, endpoint?: string): string {
+  const base = `https://explorer.solana.com/tx/${signature}`;
+  if (!endpoint || endpoint === BASE_RPC) return `${base}?cluster=devnet`;
+  return `${base}?cluster=custom&customUrl=${encodeURIComponent(endpoint)}`;
+}
+
+export function explorerAddressUrl(address: string, endpoint?: string): string {
+  const base = `https://explorer.solana.com/address/${address}`;
+  if (!endpoint || endpoint === BASE_RPC) return `${base}?cluster=devnet`;
+  return `${base}?cluster=custom&customUrl=${encodeURIComponent(endpoint)}`;
+}

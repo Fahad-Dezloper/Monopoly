@@ -13,7 +13,8 @@
     "format": "prettier --write ../web/src ../web/scripts ../server/src ../onchain/scripts",
     "format:check": "prettier --check ../web/src ../web/scripts ../server/src ../onchain/scripts",
     "test:ui": "node scripts/ui-states.mjs",
-    "test:chain-ui": "node scripts/ui-chain.mjs"
+    "test:chain-ui": "node scripts/ui-chain.mjs",
+    "test:live": "node scripts/ui-game-live.mjs"
   },
   "dependencies": {
     "@coral-xyz/anchor": "0.32.1",

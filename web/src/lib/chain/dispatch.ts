@@ -121,7 +121,16 @@ export function planAction(
     case "AUCTION_EXIT":
       return { kind: "call", method: "withdrawBid", args: [] };
 
-    case "OPEN_TRADE":
+    case "OPEN_TRADE": {
+      const seats = game.player_count;
+      if (
+        typeof action.recipient !== "number" ||
+        !Number.isInteger(action.recipient) ||
+        action.recipient < 1 ||
+        action.recipient > seats
+      ) {
+        return { kind: "error", message: "pick who you want to trade with" };
+      }
       return {
         kind: "ui",
         next: {
@@ -137,6 +146,7 @@ export function planAction(
           },
         },
       };
+    }
 
     case "UPDATE_TRADE":
       return { kind: "ui", next: { trade: action.trade } };

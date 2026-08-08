@@ -10,14 +10,24 @@ const BOARD = createStaticBoard();
 
 const squareName = (index: number) => BOARD[index]?.name ?? `square ${index}`;
 
+/**
+ * A feed line and the transaction that produced it, so the UI can link each
+ * entry to an explorer.
+ */
+export interface FeedLine {
+  text: string;
+  signature: string;
+}
+
 export function alertsFromLogs(
   coder: BorshCoder,
   logs: string[],
   game: PublicKey,
   state: OnchainGame | null,
-): string[] {
+  signature = "",
+): FeedLine[] {
   const parser = new EventParser(PROGRAM_ID, coder);
-  const out: string[] = [];
+  const out: FeedLine[] = [];
 
   const nameOf = (seat: number): string => {
     const player = state?.players[seat];
@@ -32,7 +42,7 @@ export function alertsFromLogs(
       if (subject && !subject.equals(game)) continue;
 
       const line = format(event.name, data, nameOf);
-      if (line) out.push(line);
+      if (line) out.push({ text: line, signature });
     }
   } catch {}
 

@@ -7,16 +7,35 @@ import { cx } from "@/lib/ui";
 
 const MAX_LINES = 40;
 
+export interface LogLink {
+  text: string;
+  signature: string;
+}
+
 interface LiveLogProps {
   alerts: string[];
   players: Player[];
   /** Smaller glass panel for board center. */
   compact?: boolean;
+  /**
+   * On-chain feed lines, aligned with `alerts`. When present each entry links to
+   * the transaction that produced it.
+   */
+  links?: LogLink[];
+  /** RPC the transactions ran on — a rollup needs an explorer custom URL. */
+  explorerFor?: (signature: string) => string;
 }
 
-export function LiveLog({ alerts, players, compact = false }: LiveLogProps) {
+export function LiveLog({
+  alerts,
+  players,
+  compact = false,
+  links,
+  explorerFor,
+}: LiveLogProps) {
   const feedRef = useRef<HTMLDivElement>(null);
-  const lines = alerts.slice(-MAX_LINES);
+  const start = Math.max(0, alerts.length - MAX_LINES);
+  const lines = alerts.slice(start);
 
   useEffect(() => {
     const el = feedRef.current;
@@ -61,17 +80,12 @@ export function LiveLog({ alerts, players, compact = false }: LiveLogProps) {
           const { player, rest, icon } = parseActivity(raw, players);
           const age = lines.length - 1 - index;
           const opacity = Math.max(0.35, 1 - age * 0.04);
-          return (
-            <div
-              key={`${index}-${raw.slice(0, 24)}`}
-              className={cx(
-                "flex gap-1.5 w-full text-center justify-center items-center leading-snug",
-                compact
-                  ? "text-base text-white/80"
-                  : "text-base text-slate-600",
-              )}
-              style={{ opacity }}
-            >
+          const signature = links?.[start + index]?.signature;
+          const href =
+            signature && explorerFor ? explorerFor(signature) : undefined;
+
+          const body = (
+            <>
               <span className="shrink-0" aria-hidden>
                 {icon}
               </span>
@@ -88,7 +102,53 @@ export function LiveLog({ alerts, players, compact = false }: LiveLogProps) {
                 )}
                 {player ? ` ${rest}` : rest}
               </span>
-            </div>
+              {href && (
+                <span
+                  className={cx(
+                    "shrink-0 opacity-0 transition-opacity group-hover:opacity-100",
+                    compact ? "text-white/70" : "text-accent",
+                  )}
+                  aria-hidden
+                >
+                  ↗
+                </span>
+              )}
+            </>
+          );
+
+          const shared = cx(
+            "flex w-full items-center justify-center gap-1.5 text-center leading-snug",
+            compact ? "text-base text-white/80" : "text-base text-slate-600",
+          );
+
+          if (!href) {
+            return (
+              <div
+                key={`${index}-${raw.slice(0, 24)}`}
+                className={shared}
+                style={{ opacity }}
+              >
+                {body}
+              </div>
+            );
+          }
+
+          return (
+            <a
+              key={`${index}-${raw.slice(0, 24)}`}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View this move on Solana Explorer"
+              className={cx(
+                shared,
+                "group cursor-pointer rounded-md px-1 transition-colors",
+                compact ? "hover:bg-white/10" : "hover:bg-accent/10",
+              )}
+              style={{ opacity }}
+            >
+              {body}
+            </a>
           );
         })}
       </div>

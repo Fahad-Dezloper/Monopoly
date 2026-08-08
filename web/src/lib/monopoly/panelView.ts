@@ -22,18 +22,19 @@ interface ResolveInput {
   mySeat: number | null;
   isMyTurn: boolean;
   selectedIndex: number | null;
+  /**
+   * Set when the player passed on the square they are standing on. On chain
+   * there is no `landedMessage` to infer this from, so the caller says so.
+   */
+  declined?: boolean;
 }
 
 export function isBuyable(square: Square): boolean {
   return square.price > 0;
 }
 
-export function resolvePanelView({
-  state,
-  mySeat,
-  isMyTurn,
-  selectedIndex,
-}: ResolveInput): PanelView {
+export function resolvePanelView(input: ResolveInput): PanelView {
+  const { state, mySeat, isMyTurn, selectedIndex } = input;
   if (state.phase === "game_over" && state.winner) {
     return { kind: "gameOver", winner: state.winner };
   }
@@ -60,8 +61,9 @@ export function resolvePanelView({
     !!standingOn && (!inspecting || inspecting.index === standingOn.index);
 
   const declined =
-    typeof state.landedMessage === "string" &&
-    state.landedMessage.toLowerCase().includes("declined");
+    input.declined === true ||
+    (typeof state.landedMessage === "string" &&
+      state.landedMessage.toLowerCase().includes("declined"));
 
   if (isMyTurn && state.diceRolled && standingOn && lookingAtMyTile && me) {
     if (isBuyable(standingOn) && standingOn.owner === 0 && !declined) {

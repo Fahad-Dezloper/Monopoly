@@ -19,6 +19,8 @@ const ICON_BTN =
 
 interface GameTopBarProps {
   roomCode: string;
+  /** Explorer link for the game account, when the game is on chain. */
+  chainUrl?: string;
   remaining: number;
   turn: number;
   showClock: boolean;
@@ -30,6 +32,7 @@ interface GameTopBarProps {
 
 export function GameTopBar({
   roomCode,
+  chainUrl,
   remaining,
   turn,
   showClock,
@@ -214,6 +217,23 @@ export function GameTopBar({
         >
           <LogoutIcon className="size-5" />
         </button>
+
+        {chainUrl && (
+          <a
+            href={chainUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View this game account on Solana Explorer"
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-[#c9f2e4] bg-[#eafaf4] px-3 py-2 text-[11px] font-extrabold tracking-wide text-emerald-700 uppercase shadow-sm transition-colors hover:border-emerald-400 hover:bg-[#dff6ee]"
+          >
+            <span
+              className="size-1.5 rounded-full bg-emerald-500"
+              aria-hidden
+            />
+            On chain
+            <span aria-hidden>↗</span>
+          </a>
+        )}
 
         <button
           type="button"

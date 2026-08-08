@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { GameBoard } from "@/components/game/board/GameBoard";
+import type { LogLink } from "@/components/game/rail/LiveLog";
 import { GameTopBar } from "@/components/game/GameTopBar";
 import { AuctionDialog } from "@/components/game/dialogs/AuctionDialog";
 import { CardDialog } from "@/components/game/dialogs/CardDialog";
@@ -32,6 +33,11 @@ interface GameScreenProps {
   error: string | null;
   messages: ChatMessage[];
   awaitingChain?: boolean;
+  /** On-chain feed lines; each links to the transaction that produced it. */
+  logLinks?: LogLink[];
+  explorerFor?: (signature: string) => string;
+  /** Explorer link for the game account itself. */
+  chainUrl?: string;
   act: (action: GameAction) => void;
   onSendChat: (text: string) => void;
   onLeave: () => void;
@@ -46,6 +52,9 @@ export function GameScreen({
   error,
   messages,
   awaitingChain = false,
+  logLinks,
+  explorerFor,
+  chainUrl,
   act,
   onSendChat,
   onLeave,
@@ -56,6 +65,9 @@ export function GameScreen({
   const [focusSeat, setFocusSeat] = useState<number | null>(null);
   const [showRules, setShowRules] = useState(false);
   const [tradeDismissed, setTradeDismissed] = useState(false);
+  // Which landing the player has passed on. Keyed by the landing itself so it
+  // clears the moment the dice move them somewhere new.
+  const [declinedAt, setDeclinedAt] = useState<string | null>(null);
   const [soundOff, setSoundOff] = useState(isMuted);
   const [boardSpec] = useState(loadBoardSpec);
   const lastDiceKey = useRef("");
@@ -87,9 +99,18 @@ export function GameScreen({
   const showTrade = !!state.trade && !tradeDismissed;
   const current = state.players[state.turn];
   const landedSquare = state.squares[current?.position ?? 0];
+  const landingKey = `${state.turn}-${current?.position ?? -1}-${state.die1}-${state.die2}`;
   const declined =
-    typeof state.landedMessage === "string" &&
-    state.landedMessage.toLowerCase().includes("declined");
+    declinedAt === landingKey ||
+    (typeof state.landedMessage === "string" &&
+      state.landedMessage.toLowerCase().includes("declined"));
+
+  // The server engine reports a decline through `landedMessage`; the on-chain
+  // engine has no such field, so the click is remembered here as well.
+  const handleAct = (action: GameAction) => {
+    if (action.type === "DECLINE_BUY") setDeclinedAt(landingKey);
+    act(action);
+  };
   const canBuy =
     isMyTurn &&
     !!current &&
@@ -112,6 +133,12 @@ export function GameScreen({
   };
 
   const openTrade = (recipient?: number) => {
+    // Guard against `onClick={openTrade}`, which hands us a MouseEvent: the
+    // prop is typed `() => void`, so TypeScript cannot catch that at the call
+    // site, and a non-seat recipient crashes the trade dialog.
+    if (typeof recipient !== "number" || !Number.isInteger(recipient)) {
+      recipient = undefined;
+    }
     if (recipient != null) {
       act({ type: "OPEN_TRADE", recipient });
       setTradeDismissed(false);
@@ -144,6 +171,7 @@ export function GameScreen({
     mySeat,
     isMyTurn: isMyTurn && modalReady,
     selectedIndex: modalReady ? selectedIndex : null,
+    declined,
   });
 
   // Prefer game-state views (buy/rent/card/auction/special) over idle rail.
@@ -159,6 +187,7 @@ export function GameScreen({
     <div className="grid h-dvh grid-rows-[auto_minmax(0,1fr)] gap-2 overflow-hidden bg-[#f5f3ff] p-2.5 font-sans text-slate-800">
       <GameTopBar
         roomCode={roomCode}
+        chainUrl={chainUrl}
         remaining={remaining}
         turn={turnNumber(state)}
         showClock={
@@ -186,6 +215,8 @@ export function GameScreen({
 
           <div className="min-h-0 flex-1">
             <GameBoard
+              logLinks={logLinks}
+              explorerFor={explorerFor}
               state={state}
               spec={boardSpec}
               selectedIndex={selectedIndex}
@@ -196,7 +227,7 @@ export function GameScreen({
               isMyTurn={isMyTurn}
               canBuy={!!canBuy}
               canTrade={canTrade}
-              act={act}
+              act={handleAct}
               onOpenTrade={openTrade}
               onRollStart={() => {
                 localRollPending.current = true;
@@ -205,7 +236,7 @@ export function GameScreen({
               onSelectSquare={(index) => {
                 setSelectedIndex(index);
                 if (index != null && isMyTurn) {
-                  act({ type: "SELECT_PROPERTY", index });
+                  handleAct({ type: "SELECT_PROPERTY", index });
                 }
               }}
             />
@@ -219,7 +250,7 @@ export function GameScreen({
               mySeat={mySeat}
               isMyTurn={isMyTurn}
               selectedIndex={selectedIndex}
-              act={act}
+              act={handleAct}
               onOpenTrade={openTrade}
               onClose={() => setSelectedIndex(null)}
             />
@@ -231,9 +262,9 @@ export function GameScreen({
               onFocusSeat={setFocusSeat}
               onSelectSquare={(index) => {
                 setSelectedIndex(index);
-                if (isMyTurn) act({ type: "SELECT_PROPERTY", index });
+                if (isMyTurn) handleAct({ type: "SELECT_PROPERTY", index });
               }}
-              act={act}
+              act={handleAct}
             />
           )}
         </div>
@@ -242,25 +273,29 @@ export function GameScreen({
       {state.phase === "auction" ? (
         <AuctionDialog
           state={seatedState}
-          act={act}
+          act={handleAct}
           onShowDeed={setSelectedIndex}
         />
       ) : (
         <CardDialog
           state={seatedState}
           mySeat={mySeat}
-          act={act}
+          act={handleAct}
           ready={modalReady}
         />
       )}
 
-      <StatsDialog state={state} act={act} onShowDeed={setSelectedIndex} />
+      <StatsDialog
+        state={state}
+        act={handleAct}
+        onShowDeed={setSelectedIndex}
+      />
 
       {showTrade && (
         <TradeDialog
           state={state}
           mySeat={mySeat}
-          act={act}
+          act={handleAct}
           onClose={() => setTradeDismissed(true)}
         />
       )}

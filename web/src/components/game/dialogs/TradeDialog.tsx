@@ -22,6 +22,8 @@ export function TradeDialog({ state, mySeat, act, onClose }: TradeDialogProps) {
 
   const initiator = state.players[trade.initiator];
   const recipient = state.players[trade.recipient];
+  // A malformed draft must not take the whole screen down with it.
+  if (!initiator || !recipient) return null;
   const iAmRecipient = mySeat === trade.recipient;
 
   const tradableFor = (seat: number): Square[] =>

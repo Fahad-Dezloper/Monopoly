@@ -17,7 +17,7 @@ import {
   planAction,
   type UiState,
 } from "@/lib/chain/dispatch";
-import { alertsFromLogs } from "@/lib/chain/events";
+import { alertsFromLogs, type FeedLine } from "@/lib/chain/events";
 import { topUp } from "@/lib/chain/burner";
 import { variantOf, type OnchainGame } from "@/lib/chain/types";
 import type { ChatMessage, PublicRoom, RoomMember } from "@/lib/api/types";
@@ -29,6 +29,10 @@ export type LobbyView = "home" | "lobby" | "playing";
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const MAX_ALERTS = 80;
+
+const CHAT_API = (
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "/api"
+).replace(/\/$/, "");
 
 function randomCode(): string {
   const bytes = new Uint8Array(CODE_LEN);
@@ -75,7 +79,7 @@ export function useOnchainGame() {
   const [code, setCode] = useState<string | null>(null);
   const [game, setGame] = useState<OnchainGame | null>(null);
   const [ui, setUi] = useState<UiState>(EMPTY_UI);
-  const [alerts, setAlerts] = useState<string[]>([]);
+  const [feed, setFeed] = useState<FeedLine[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [error, setError] = useState<string | null>(null);
@@ -83,6 +87,8 @@ export function useOnchainGame() {
   const [revision, setRevision] = useState({ version: 0, at: 0 });
 
   const [routeVersion, setRouteVersion] = useState(0);
+  // Mirrored into state because the render path needs it for explorer links.
+  const [feedEndpoint, setFeedEndpoint] = useState<string | null>(null);
 
   const gameRef = useRef<OnchainGame | null>(null);
   const settledRef = useRef(false);
@@ -126,6 +132,7 @@ export function useOnchainGame() {
       if (cancelled) return;
       connection = route.connection;
       endpointRef.current = route.endpoint;
+      setFeedEndpoint(route.endpoint);
 
       stopAccount = await chain.watchGame(pda, (next) => {
         if (cancelled) return;
@@ -142,9 +149,10 @@ export function useOnchainGame() {
             entry.logs,
             pda,
             gameRef.current,
+            entry.signature,
           );
           if (lines.length === 0) return;
-          setAlerts((prev) => [...prev, ...lines].slice(-MAX_ALERTS));
+          setFeed((prev) => [...prev, ...lines].slice(-MAX_ALERTS));
         },
         "confirmed",
       );
@@ -158,6 +166,8 @@ export function useOnchainGame() {
       }
     };
   }, [chain, pda, routeVersion]);
+
+  const alerts = useMemo(() => feed.map((line) => line.text), [feed]);
 
   const state = useMemo(
     () =>
@@ -265,7 +275,7 @@ export function useOnchainGame() {
         );
         await chain.sendBase([ix]);
         setMaxPlayers(input.maxPlayers);
-        setAlerts([]);
+        setFeed([]);
         settledRef.current = false;
         setCode(next);
       });
@@ -285,7 +295,7 @@ export function useOnchainGame() {
           chain.gamePda(next),
         );
         await chain.sendBase([ix]);
-        setAlerts([]);
+        setFeed([]);
         settledRef.current = false;
         setCode(next);
       });
@@ -316,17 +326,19 @@ export function useOnchainGame() {
     setCode(null);
     setGame(null);
     setUi(EMPTY_UI);
-    setAlerts([]);
+    setFeed([]);
     setMessages([]);
     setError(null);
     endpointRef.current = null;
   }, []);
 
+  // Table chat is not on chain: it is talk, not game state, and it would cost
+  // account space and a transaction per line. It goes through the REST server,
+  // keyed only by the room code both players already share.
   const sendChat = useCallback(
     async (text: string) => {
       const body = text.trim();
-      if (!body) return;
-      // Local chat works in lobby and in-game (no on-chain chat account).
+      if (!body || !code) return;
       const seat = game ? seatOf(game, playerId) : null;
       const username =
         seat != null && game
@@ -336,20 +348,41 @@ export function useOnchainGame() {
         seat != null && game
           ? (PLAYER_COLORS[game.players[seat].color] ?? "blue")
           : "blue";
-      setMessages((prev) => [
-        ...prev.slice(-60),
-        {
-          id: `${Date.now()}-${prev.length}`,
-          playerId,
-          username,
-          color,
-          text: body,
-          at: Date.now(),
-        },
-      ]);
+
+      try {
+        const res = await fetch(`${CHAT_API}/chat/${code}`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ playerId, username, color, text: body }),
+        });
+        const data = (await res.json()) as { messages?: ChatMessage[] };
+        if (data.messages) setMessages(data.messages);
+      } catch {
+        // Chat is not worth failing a turn over; the poll will catch up.
+      }
     },
-    [game, playerId],
+    [code, game, playerId],
   );
+
+  useEffect(() => {
+    if (!code) return;
+    let cancelled = false;
+    const read = async () => {
+      try {
+        const res = await fetch(`${CHAT_API}/chat/${code}`);
+        const data = (await res.json()) as { messages?: ChatMessage[] };
+        if (!cancelled && data.messages) setMessages(data.messages);
+      } catch {
+        // Offline or no server — chat simply stays quiet.
+      }
+    };
+    void read();
+    const timer = setInterval(() => void read(), 2000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [code]);
 
   const act = useCallback(
     async (action: GameAction) => {
@@ -410,6 +443,11 @@ export function useOnchainGame() {
     busy,
     awaitingChain: game?.vrf_pending ?? false,
     wallet: chain.wallet,
+    /** Feed lines paired with the transaction that produced each one. */
+    feed,
+    /** Where those transactions ran, so links point at the right explorer. */
+    feedEndpoint,
+    gameAddress: pda?.toBase58() ?? null,
     createGame,
     joinGame,
     startGame,

@@ -3,7 +3,12 @@
 import { useSearchParams } from "next/navigation";
 import { EntryFlow } from "@/components/entry/EntryFlow";
 import { GameScreen } from "@/components/game/GameScreen";
-import { CHAIN_ENABLED } from "@/lib/chain/config";
+import {
+  CHAIN_ENABLED,
+  explorerAddressUrl,
+  explorerTxUrl,
+} from "@/lib/chain/config";
+import type { LogLink } from "@/components/game/rail/LiveLog";
 import { useMultiplayer } from "@/hooks/useMultiplayer";
 import { useOnchainGame } from "@/hooks/useOnchainGame";
 import type { PublicRoom } from "@/lib/api/types";
@@ -47,16 +52,37 @@ function ServerApp() {
 function OnchainApp() {
   const session = useOnchainGame();
   return (
-    <SessionView session={session} awaitingChain={session.awaitingChain} />
+    <SessionView
+      session={session}
+      awaitingChain={session.awaitingChain}
+      logLinks={session.feed}
+      explorerFor={(signature) =>
+        explorerTxUrl(signature, session.feedEndpoint ?? undefined)
+      }
+      chainUrl={
+        session.gameAddress
+          ? explorerAddressUrl(
+              session.gameAddress,
+              session.feedEndpoint ?? undefined,
+            )
+          : undefined
+      }
+    />
   );
 }
 
 function SessionView({
   session,
   awaitingChain = false,
+  logLinks,
+  explorerFor,
+  chainUrl,
 }: {
   session: Session;
   awaitingChain?: boolean;
+  logLinks?: LogLink[];
+  explorerFor?: (signature: string) => string;
+  chainUrl?: string;
 }) {
   const params = useSearchParams();
   const joinPrefill = params.get("join")?.toUpperCase() ?? null;
@@ -93,6 +119,9 @@ function SessionView({
       error={session.error}
       messages={session.room.messages ?? []}
       awaitingChain={awaitingChain}
+      logLinks={logLinks}
+      explorerFor={explorerFor}
+      chainUrl={chainUrl}
       act={(action) => void session.act(action)}
       onSendChat={session.sendChat}
       onLeave={session.leaveGame}

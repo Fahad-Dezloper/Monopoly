@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PlayerIdentityFields } from "@/components/entry/PlayerIdentityFields";
 import { DevnetWalletCard } from "@/components/entry/DevnetWalletCard";
+import { CHAIN_ENABLED } from "@/lib/chain/config";
 import type { PlayerColor } from "@/lib/monopoly/types";
 
 interface CreateRoomDialogProps {
@@ -38,8 +39,10 @@ export function CreateRoomDialog({
   });
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [isWalletFunded, setIsWalletFunded] = useState<boolean>(true);
+  // Off chain there is no wallet to fund, so it can never block the form.
+  const walletReady = !CHAIN_ENABLED || isWalletFunded;
 
-  const ready = !busy && !!name.trim() && isWalletFunded;
+  const ready = !busy && !!name.trim() && walletReady;
 
   const submit = () => {
     if (!ready) return;
@@ -57,7 +60,9 @@ export function CreateRoomDialog({
 
         <div className="w-[28vw] my-2 mx-4 h-auto flex flex-col gap-2.5 bg-white p-3 rounded-2xl shadow-sm border border-purple-100/50">
           {/* DEVNET WALLET CARD & SOL BALANCE */}
-          <DevnetWalletCard onFundedChange={setIsWalletFunded} />
+          {CHAIN_ENABLED && (
+            <DevnetWalletCard onFundedChange={setIsWalletFunded} />
+          )}
 
           <PlayerIdentityFields
             name={name}
