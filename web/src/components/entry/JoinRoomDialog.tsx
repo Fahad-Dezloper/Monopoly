@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PlayerIdentityFields } from "@/components/entry/PlayerIdentityFields";
+import { DevnetWalletCard } from "@/components/entry/DevnetWalletCard";
 import type { PlayerColor } from "@/lib/monopoly/types";
 
 interface JoinRoomDialogProps {
@@ -22,8 +23,11 @@ export function JoinRoomDialog({
   const [name, setName] = useState("player_1");
   const [color, setColor] = useState<PlayerColor>("blue");
   const [code, setCode] = useState(initialCode ?? "");
+  const [isWalletFunded, setIsWalletFunded] = useState<boolean>(true);
 
-  const ready = !busy && !!name.trim() && code.trim().length >= 4;
+  const ready =
+    !busy && !!name.trim() && code.trim().length >= 4 && isWalletFunded;
+
   const submit = () => {
     if (!ready) return;
     onJoin({ code: code.trim(), name: name.trim(), color });
@@ -57,6 +61,9 @@ export function JoinRoomDialog({
             />
           </div>
 
+          {/* DEVNET WALLET CARD & SOL BALANCE */}
+          <DevnetWalletCard onFundedChange={setIsWalletFunded} />
+
           <PlayerIdentityFields
             name={name}
             color={color}
@@ -77,16 +84,20 @@ export function JoinRoomDialog({
             alt="lobby section"
             className="w-full h-full object-cover"
           />
-          <div className="flex gap-8 absolute bottom-5.5 font-black w-full justify-between px-14">
+          <div className="absolute inset-0 flex items-center justify-between px-10 font-extrabold text-white text-xs md:text-sm lg:text-base">
             <button
               type="button"
-              className="pl-5"
+              className="flex-1 flex items-center justify-center text-center px-3 h-full transition-all disabled:opacity-40 hover:opacity-90 leading-tight"
               disabled={!ready}
               onClick={submit}
             >
               {busy ? "Joining…" : "Join lobby"}
             </button>
-            <button type="button" className="pr-17" onClick={onBack}>
+            <button
+              type="button"
+              className="flex-1 flex items-center justify-center text-center px-3 h-full transition-all hover:opacity-90 leading-tight"
+              onClick={onBack}
+            >
               Back
             </button>
           </div>

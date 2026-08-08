@@ -1,14 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Dialog,
-  dialogGhost,
-  dialogPrimary,
-} from "@/components/game/dialogs/Dialog";
 import { PlayerIdentityFields } from "@/components/entry/PlayerIdentityFields";
+import { DevnetWalletCard } from "@/components/entry/DevnetWalletCard";
 import type { PlayerColor } from "@/lib/monopoly/types";
-import { errorBox, field, fieldLabel, input } from "@/lib/ui";
 
 interface CreateRoomDialogProps {
   busy: boolean;
@@ -30,15 +25,18 @@ export function CreateRoomDialog({
   const [name, setName] = useState("player_1");
   const [color, setColor] = useState<PlayerColor>("blue");
   const [maxPlayers, setMaxPlayers] = useState(4);
+  const [isWalletFunded, setIsWalletFunded] = useState<boolean>(true);
+
+  const ready = !busy && !!name.trim() && isWalletFunded;
 
   const submit = () => {
-    if (busy || !name.trim()) return;
+    if (!ready) return;
     onCreate({ name: name.trim(), color, maxPlayers });
   };
 
   return (
     <div className="w-screen h-screen relative">
-      <div className="w-[30vw] flex flex-col absolute scale-125 inset-0 m-auto h-fit rounded-2xl pb-2 bg-white overflow-hidden">
+      <div className="w-[30vw] flex flex-col absolute scale-125 inset-0 m-auto h-fit rounded-2xl pb-2 bg-white overflow-hidden shadow-2xl">
         <img
           src={"/landing/lobbytop.png"}
           alt="lobby section"
@@ -46,6 +44,9 @@ export function CreateRoomDialog({
         />
 
         <div className="w-[28vw] my-2 mx-4 h-auto flex flex-col gap-2.5 bg-white p-3 rounded-2xl shadow-sm border border-purple-100/50">
+          {/* DEVNET WALLET CARD & SOL BALANCE */}
+          <DevnetWalletCard onFundedChange={setIsWalletFunded} />
+
           <PlayerIdentityFields
             name={name}
             color={color}
@@ -101,16 +102,20 @@ export function CreateRoomDialog({
             alt="lobby section"
             className="w-full h-full object-cover"
           />
-          <div className="flex gap-8 absolute bottom-5.5 font-black w-full justify-between px-14">
+          <div className="absolute inset-0 flex items-center justify-between px-10 font-extrabold text-white text-xs md:text-sm lg:text-base">
             <button
               type="button"
-              className="pl-5"
-              disabled={busy || !name.trim()}
+              className="flex-1 flex items-center justify-center text-center px-3 h-full transition-all disabled:opacity-40 hover:opacity-90 leading-tight"
+              disabled={!ready}
               onClick={submit}
             >
               {busy ? "Creating…" : "Create lobby"}
             </button>
-            <button type="button" className="pr-17" onClick={onBack}>
+            <button
+              type="button"
+              className="flex-1 flex items-center justify-center text-center px-3 h-full transition-all hover:opacity-90 leading-tight"
+              onClick={onBack}
+            >
               Back
             </button>
           </div>

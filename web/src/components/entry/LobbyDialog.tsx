@@ -347,13 +347,13 @@ export function LobbyDialog({
             alt="lobby section"
             className="w-full h-full object-cover"
           />
-          <div className="flex gap-8 absolute bottom-10 font-black w-full justify-between px-20 text-lg">
+          <div className="absolute inset-0 flex items-center justify-between px-10 font-extrabold text-white text-xs md:text-sm lg:text-base">
             {isHost ? (
               <button
                 type="button"
                 disabled={busy || short}
                 onClick={onStart}
-                className="disabled:opacity-50"
+                className="flex-1 flex items-center justify-center text-center px-3 h-full transition-all disabled:opacity-40 hover:opacity-90 leading-tight"
               >
                 {busy
                   ? "Starting…"
@@ -362,11 +362,15 @@ export function LobbyDialog({
                     : `Start game · ${room.members.length} players`}
               </button>
             ) : (
-              <div className="flex h-10 flex-1 items-center justify-center gap-2">
+              <div className="flex-1 flex items-center justify-center text-center px-3 h-full leading-tight truncate">
                 Waiting for {hostName} to start…
               </div>
             )}
-            <button type="button" className="pr-22" onClick={onLeave}>
+            <button
+              type="button"
+              onClick={onLeave}
+              className="flex-1 flex items-center justify-center text-center px-3 h-full transition-all hover:opacity-90 leading-tight"
+            >
               Leave lobby
             </button>
           </div>

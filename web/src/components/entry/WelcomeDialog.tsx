@@ -25,11 +25,19 @@ export function WelcomeDialog({ onCreate, onJoin }: WelcomeDialogProps) {
           alt="landing modal"
           className="w-full h-full object-cover"
         />
-        <div className="flex gap-8 absolute bottom-6  font-black w-full justify-between px-16 ">
-          <button type="button" className="text-white" onClick={onCreate}>
+        <div className="absolute bottom-6 inset-x-0 flex items-center justify-between px-10 font-extrabold text-white text-xs md:text-sm lg:text-base">
+          <button
+            type="button"
+            className="flex-1 flex items-center justify-center text-center px-3 h-full transition-all hover:opacity-90 leading-tight"
+            onClick={onCreate}
+          >
             Create a lobby
           </button>
-          <button type="button" className="text-white" onClick={onJoin}>
+          <button
+            type="button"
+            className="flex-1 flex items-center justify-center text-center px-3 h-full transition-all hover:opacity-90 leading-tight"
+            onClick={onJoin}
+          >
             Join with a code
           </button>
         </div>{" "}
