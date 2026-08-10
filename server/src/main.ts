@@ -19,11 +19,12 @@ async function bootstrap() {
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup("api/docs", app, swaggerDocument);
 
+  // Render injects PORT and expects the process to bind every interface, which
+  // is what `listen` does when given no host.
   const port = Number(process.env.PORT ?? 4000);
   await app.listen(port);
-  Logger.log(`Robinverse server on http://localhost:${port}`, "Bootstrap");
-  Logger.log(`Swagger docs on http://localhost:${port}/api/docs`, "Bootstrap");
-  Logger.log(`WebSocket namespace: /game`, "Bootstrap");
+  Logger.log(`Robinverse server on port ${port}`, "Bootstrap");
+  Logger.log(`Swagger docs at /api/docs`, "Bootstrap");
 }
 
 bootstrap();
