@@ -1,0 +1,50 @@
+# Render blueprint for the RobinVerse API.
+#
+# Only the NestJS server lives here — the Next.js front end is on Vercel. In
+# on-chain mode (NEXT_PUBLIC_CHAIN=1) the game itself is a Solana account and
+# this service exists purely for table chat; with NEXT_PUBLIC_CHAIN=0 it also
+# serves rooms, lobbies and the off-chain engine.
+#
+# Deploy: Render dashboard -> New -> Blueprint -> pick this repo. It will ask
+# for CORS_ORIGIN; give it the Vercel URL.
+
+services:
+  - type: web
+    name: robinverse-server
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: server
+    # `prisma generate` runs again explicitly: the postinstall covers it, but a
+    # warm pnpm cache can skip postinstall entirely and leave no client behind.
+    buildCommand: pnpm install --frozen-lockfile && pnpm exec prisma generate && pnpm build
+    startCommand: node dist/main
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: REDIS_MODE
+        value: redis
+      - key: REDIS_URL
+        fromService:
+          name: robinverse-cache
+          type: keyvalue
+          property: connectionString
+      # Comma-separated. Set to the Vercel origin, e.g.
+      # https://robin-empire.vercel.app — no trailing slash.
+      - key: CORS_ORIGIN
+        sync: false
+    # DATABASE_URL is deliberately absent. Postgres only ever held guest profile
+    # rows; without it they live in Redis instead. Add a Render Postgres and set
+    # DATABASE_URL if you want them to survive a restart.
+
+  # Rooms, game state and chat. Free tier is 25 MB with no persistence, which is
+  # ample: chat is capped at 80 messages per room on a 6h TTL.
+  - type: keyvalue
+    name: robinverse-cache
+    plan: free
+    region: singapore
+    maxmemoryPolicy: allkeys-lru
+    # Empty list = reachable only from inside Render, which is all the server
+    # needs. Add 0.0.0.0/0 if you want to connect from your laptop.
+    ipAllowList: []
